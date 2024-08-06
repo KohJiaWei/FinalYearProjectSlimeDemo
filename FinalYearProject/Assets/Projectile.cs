@@ -24,7 +24,7 @@ public class Projectile : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         Debug.Log("hello");
-        Target target = collision.transform.GetComponent<Target>();
+        Health target = collision.transform.GetComponent<Health>();
         if (target != null)
         {
             target.TakeDamage(damage);
