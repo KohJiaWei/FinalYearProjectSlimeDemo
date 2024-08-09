@@ -43,33 +43,5 @@ public class SlimeAI : MonoBehaviour
     }
 
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Rocket")) // or collision.gameObject.CompareTag("Rocket"))
-        {
-            //// Change color
-            //if (rendererSlime != null)
-            //{
-            //    rendererSlime.material.color = hitColor;
-            //}
-
-            // Apply knockback
-            Vector3 knockbackDirection = transform.position - collision.transform.position;
-            rb.AddForce(knockbackDirection.normalized * 10f, ForceMode.Impulse);  // Adjust force as needed
-
-            //// Optional: Reset color after a delay
-            //Invoke("ResetColor", 0.5f);  // Resets color after 0.5 seconds
-        }
-    }
-
-    //private void ResetColor()
-    //{
-    //    if (rendererSlime != null)
-    //    {
-    //        rendererSlime.material.color = originalColor;
-    //    }
-    //}
-
-    
 }
 

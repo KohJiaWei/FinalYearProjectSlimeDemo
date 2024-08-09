@@ -1,35 +1,52 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.UI.Image;
+
 
 public class LightningSpell : MonoBehaviour
 {
-    public ParticleSystem lightningEffect;
-    public LineRenderer lightningStrike;
-    public AudioSource lightningSound;
-    public Transform target;
-
+    public int damage = 100;
+    public float range = 100f;
+    public Camera fpsCam; // Assuming you're using a first-person camera
+    public LightningInstance lightningInstance;
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.X)) // Change the key as needed
+        Debug.Log("Does this script even run");
+        if (Input.GetButtonDown("Fire1"))
         {
-            CastLightning();
+            Debug.Log("UpdatePlayerBullet");
+            Shoot();
         }
     }
 
-    void CastLightning()
+    void Shoot()
     {
-        // Play particle effect
-        lightningEffect.Play();
+        RaycastHit[] hitMultiple;
+        Vector3 origin = fpsCam.transform.position;
+        Vector3 direction = fpsCam.transform.forward;
+        var sphereRadius = 0.2f;
+        float maxDistance = 999f;
 
-        // Draw the line renderer
-        lightningStrike.SetPosition(0, transform.position);
-        lightningStrike.SetPosition(1, target.position);
+        hitMultiple = Physics.SphereCastAll(origin, sphereRadius, direction, maxDistance);
+        foreach (var hit in hitMultiple )
+        {
+            var healthScript = hit.collider.GetComponent<Health>();
+            if (healthScript == null) {
+                continue;
+            }
+            if (healthScript.gameObject == this.gameObject) //this.gameObject is me because im the instance that gameObject is on
+            {
+                continue;
+            }
+            healthScript.TakeDamage(damage);
+            var lightningInstantiation = Instantiate(lightningInstance);
+            lightningInstantiation.transform.position = origin;
 
-        // Play the sound effect
-        lightningSound.Play();
+            HashSet<Health> alreadyHit = new HashSet<Health>() {healthScript};
 
-        // Optionally, add damage or other effects to the target
+            lightningInstantiation.__init__(origin,healthScript.transform.position, alreadyHit);
+        }
+       
     }
 }
-

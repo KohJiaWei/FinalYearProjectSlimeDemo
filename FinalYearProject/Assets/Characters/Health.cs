@@ -6,65 +6,54 @@ using static UnityEngine.GraphicsBuffer;
 public class Health : MonoBehaviour
 {
     public float health = 100f;
-    private Color originalColor;
+    private Color[] originalColors;
     public Color hitColor = Color.red;
-    private Rigidbody rb;
     // Method to apply damage to the target
-    private Renderer rendererSlime;
+    private Renderer[] arrayOfRenderers;
 
     void Start()
     {
-        rendererSlime = GetComponentInChildren<Renderer>();
+        arrayOfRenderers = GetComponentsInChildren<Renderer>();
         // Save the original color
-        if (rendererSlime != null)
+        originalColors = new Color[arrayOfRenderers.Length];
+        if (arrayOfRenderers != null)
         {
-            originalColor = rendererSlime.material.color;
+            int i = 0;
+            foreach (var renderer in arrayOfRenderers)
+            {
+                originalColors[i] = renderer.material.color;
+                i++;
+            }
         }
     }
-    public void TakeDamage(float amount)
+    public void TakeDamage(float damage)
     {
-        // Change color
-        if (rendererSlime != null)
+    
+        for (int i = 0; i < arrayOfRenderers.Length; i++)
         {
-            rendererSlime.material.color = hitColor;
+            arrayOfRenderers[i].material.color = hitColor;
         }
         Invoke("ResetColor", 0.5f);  // Resets color after 0.5 seconds
 
-        health -= amount;
+        health -= damage;
         if (health <= 0f)
         {
             Die();
         }
-
-    
 }
 
     // Method to handle the target's death
     private void Die()
     {
-        // Here you can handle what happens when the target dies
-        // For example, play a death animation, drop loot, etc.
         Debug.Log($"{gameObject.name} has died.");
-        Destroy(gameObject); // Destroy the target GameObject
-    }
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Rocket"))
-        {
-            // Change color
-            if (rendererSlime != null)
-            {
-                rendererSlime.material.color = hitColor;
-            }
-            Invoke("ResetColor", 0.5f);  // Resets color after 0.5 seconds
-        }
+        Destroy(gameObject);
     }
 
     private void ResetColor()
     {
-        if (rendererSlime != null)
+        for (int i = 0; i < arrayOfRenderers.Length; i++)
         {
-            rendererSlime.material.color = originalColor;
+            arrayOfRenderers[i].material.color = originalColors[i];
         }
     }
 }

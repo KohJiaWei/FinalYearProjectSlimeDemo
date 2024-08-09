@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Rocket
   - Ability
+  - Enemy
   layers:
   - Default
   - TransparentFX

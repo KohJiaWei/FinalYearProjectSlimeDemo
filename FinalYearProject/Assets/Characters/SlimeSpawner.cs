@@ -8,7 +8,8 @@ public class SlimeSpawner : MonoBehaviour
     public GameObject slimePrefab; // Assign your slime prefab in the Inspector
     public int numberOfSlimes = 1; // Number of slimes to spawn
     public Vector2 mapSize = new Vector2(25, 25); // Size of the map (width, height)
-    private float timer = 5;
+    public float timer = 5;
+    public float tickTime = 1;
 
     void Start()
     {
@@ -19,7 +20,7 @@ public class SlimeSpawner : MonoBehaviour
         timer -= Time.deltaTime;
         if (timer < 0) {
             SpawnSlimes();
-            timer = 5;
+            timer = tickTime;
             
         }
     }

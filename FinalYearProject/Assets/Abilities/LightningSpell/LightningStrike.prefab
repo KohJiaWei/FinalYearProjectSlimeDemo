@@ -77,8 +77,6 @@ LineRenderer:
   m_Positions:
   - {x: 0, y: 0, z: 0}
   - {x: 20, y: 10, z: 20}
-  - {x: -20, y: 0, z: 40}
-  - {x: 0, y: 0, z: 60}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 50
@@ -135,7 +133,7 @@ LineRenderer:
     shadowBias: 0.5
     generateLightingData: 0
   m_MaskInteraction: 0
-  m_UseWorldSpace: 0
+  m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
 --- !u!1 &5848418639874368680
@@ -148,9 +146,10 @@ GameObject:
   m_Component:
   - component: {fileID: 5089381361564667464}
   - component: {fileID: 2969717942667290198}
+  - component: {fileID: 4139404481738857385}
   m_Layer: 0
   m_Name: LightningStrike
-  m_TagString: Untagged
+  m_TagString: Ability
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -267,3 +266,18 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &4139404481738857385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5848418639874368680}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64d0cab980f74434e848a17ad2fc8eb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lightningLineRenderer: {fileID: 8428339318027363767}
+  damage: 50
+  chainLightningDistance: 20
