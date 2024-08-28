@@ -7,9 +7,11 @@ public class PlayerMovement : MonoBehaviour
 {
     public CharacterController controller;
 
+    public float walkSpeed = 5.0f;
     public float speed = 12f;
     public float gravity = -9.81f;
     public float jumpHeight = 3f;
+    public float runSpeed = 24f;
 
     Vector3 velocity;
     bool isGrounded;
@@ -17,6 +19,8 @@ public class PlayerMovement : MonoBehaviour
     public Transform groundCheck;
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
+
+    private float doubleTapTime = 0.3f;
 
     void Update()
     {
@@ -29,6 +33,15 @@ public class PlayerMovement : MonoBehaviour
 
         Vector3 move = transform.right * x + transform.forward * z;
         controller.Move(move * speed * Time.deltaTime);
+
+        //if (Input.GetButton("Run"))
+        //{
+        //    controller.Move(move * Time.deltaTime * runSpeed);
+        //}
+        //else
+        //{
+        //    controller.Move(move * Time.deltaTime * walkSpeed);
+        //}
 
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
