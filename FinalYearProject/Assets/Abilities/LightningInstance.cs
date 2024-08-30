@@ -9,6 +9,10 @@ public class LightningInstance : MonoBehaviour
     public LineRenderer lightningLineRenderer;
     public int damage = 50;
     public int chainLightningDistance = 5;
+    public AudioClip LightningAudio;
+    public static int AmountOfLightningInTheWorld;
+    public int MaxAmountOfLightningInTheWorld = 3;
+    private List<Health> SlimeList = new List<Health>();
 
 
     public void __init__(Vector3 startPos, Vector3 endPos,HashSet<Health> alreadyHit)
@@ -16,6 +20,10 @@ public class LightningInstance : MonoBehaviour
         lightningLineRenderer.SetPosition(0, startPos);
         lightningLineRenderer.SetPosition(1, endPos);
         var AllHealth = FindObjectsOfType<Health>();
+        if (AmountOfLightningInTheWorld < MaxAmountOfLightningInTheWorld)
+        {
+            AudioSource.PlayClipAtPoint(LightningAudio, startPos);
+        }
         foreach (Health healthScript in AllHealth)
         {
             if (alreadyHit.Contains(healthScript))
@@ -29,15 +37,28 @@ public class LightningInstance : MonoBehaviour
                 continue;
             }
 
-            healthScript.TakeDamage(damage);
-            var lightningInstantiation = Instantiate(this);
-
-            lightningInstantiation.transform.position = endPos;
-            alreadyHit.Add(healthScript);
-
-            lightningInstantiation.__init__(endPos, healthScript.transform.position, alreadyHit);
-            break;
+            SlimeList.Add(healthScript);
+            
         }
+        float CurrentClosestSlimeDistance = float.MaxValue;
+        Health closestSlimeTarget = null;
+        foreach (Health distanceCloseEnoughHealthScript in SlimeList)
+        {
+            float distance = Vector3.Distance(distanceCloseEnoughHealthScript.transform.position, endPos);
+            if (distance < CurrentClosestSlimeDistance)
+            {
+                CurrentClosestSlimeDistance = distance;
+                closestSlimeTarget = distanceCloseEnoughHealthScript;
+            }
+            
+        }
+        closestSlimeTarget.TakeDamage(damage);
+        var lightningInstantiation = Instantiate(this);
+
+        lightningInstantiation.transform.position = endPos;
+        alreadyHit.Add(closestSlimeTarget);
+
+        lightningInstantiation.__init__(endPos, closestSlimeTarget.transform.position, alreadyHit);
     }
 
     // Start is called before the first frame update
@@ -52,5 +73,16 @@ public class LightningInstance : MonoBehaviour
         
     }
 
-    
+    private void OnDestroy()
+    {
+        AmountOfLightningInTheWorld--;  
+    }
+
+    private void Awake()
+    {
+        AmountOfLightningInTheWorld++;
+
+    }
+
+
 }

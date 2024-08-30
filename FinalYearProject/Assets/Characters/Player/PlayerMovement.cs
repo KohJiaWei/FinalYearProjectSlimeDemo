@@ -34,14 +34,14 @@ public class PlayerMovement : MonoBehaviour
         Vector3 move = transform.right * x + transform.forward * z;
         controller.Move(move * speed * Time.deltaTime);
 
-        //if (Input.GetButton("Run"))
-        //{
-        //    controller.Move(move * Time.deltaTime * runSpeed);
-        //}
-        //else
-        //{
-        //    controller.Move(move * Time.deltaTime * walkSpeed);
-        //}
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            controller.Move(move * Time.deltaTime * runSpeed);
+        }
+        else
+        {
+            controller.Move(move * Time.deltaTime * walkSpeed);
+        }
 
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
