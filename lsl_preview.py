@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 print("Looking for an LSL stream...")
 streams = resolve_stream()  # This resolves all available streams
 
+
 # Print available streams for identification
 for i, stream in enumerate(streams):
     print(f"Stream {i}: Name={stream.name()}, Type={stream.type()}, Channels={stream.channel_count()}, Rate={stream.nominal_srate()}")

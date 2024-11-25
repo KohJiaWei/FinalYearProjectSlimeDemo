@@ -12,7 +12,7 @@ public class LightningSpell : MonoBehaviour
     public LightningInstance lightningInstance;
     void Update()
     {
-        Debug.Log("Does this script even run");
+        //Debug.Log("Does this script even run");
         if (Input.GetButtonDown("Fire1"))
         {
             Debug.Log("UpdatePlayerBullet");

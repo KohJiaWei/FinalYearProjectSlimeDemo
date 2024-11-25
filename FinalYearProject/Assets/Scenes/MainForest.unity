@@ -237,7 +237,6 @@ GameObject:
   m_Component:
   - component: {fileID: 84387309}
   - component: {fileID: 84387312}
-  - component: {fileID: 84387311}
   - component: {fileID: 84387310}
   m_Layer: 6
   m_Name: Third Person Camera
@@ -305,14 +304,6 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!81 &84387311
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 84387308}
-  m_Enabled: 1
 --- !u!20 &84387312
 Camera:
   m_ObjectHideFlags: 0
@@ -6096,6 +6087,7 @@ GameObject:
   - component: {fileID: 1552348458}
   - component: {fileID: 1552348457}
   - component: {fileID: 1552348456}
+  - component: {fileID: 1552348459}
   m_Layer: 6
   m_Name: Sphere
   m_TagString: Untagged
@@ -6189,6 +6181,19 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1552348454}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1552348459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1552348454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7aaff4079ffff942ac403333e60cc65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  StreamName: Muse-BA66 (00:55:da:b5:ba:66) EEG
 --- !u!1 &1654971195
 GameObject:
   m_ObjectHideFlags: 0
@@ -6322,9 +6327,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 1654971196}
+  walkSpeed: 5
   speed: 12
   gravity: -9.81
   jumpHeight: 3
+  runSpeed: 24
   groundCheck: {fileID: 0}
   groundDistance: 0.4
   groundMask:
@@ -6403,10 +6410,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d30c96bc47c66004d8917d3000d903e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightningEffect: {fileID: 359181461}
-  lightningStrike: {fileID: 0}
-  lightningSound: {fileID: 0}
-  target: {fileID: 5349759089743677956, guid: b8ad0d3a9c423e94ba4bc9b69fded05d, type: 3}
 --- !u!114 &1654971207
 MonoBehaviour:
   m_ObjectHideFlags: 0
