@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro; // For TextMeshPro
 
 
 public class CardGameMain : MonoBehaviour
@@ -21,6 +22,8 @@ public class CardGameMain : MonoBehaviour
     public static CardGameMain main;
     public CardUI prefabCardUI;
     public RectTransform canvas;
+    public TextMeshProUGUI matchedPairsCounterText;
+    public GameObject winPanel;
     public Sprite diamondSprite;
     public Sprite spadeSprite;
     public Sprite clubSprite;
@@ -29,6 +32,7 @@ public class CardGameMain : MonoBehaviour
     public Sprite orangeMushroomSprite;
     public Sprite slimeSprite;
     public Sprite yetiSprite;
+
 
     CardUI card1;
     CardUI card2;
@@ -51,8 +55,14 @@ public class CardGameMain : MonoBehaviour
     {
         // Resetting game state and adjusting difficulty
         didPlayerWinGame = false;
+        UpdateMatchedPairsCounter();
         totalPairs = (max_x * max_y) / 2; //4*4/2 = 8
         DestroyAllCards();
+
+        if (winPanel != null)
+        {
+            winPanel.SetActive(false);
+        }
 
         var x_pos = -350; //-700 : 700
         var y_pos = 400; //-400 : 400
@@ -135,6 +145,9 @@ public class CardGameMain : MonoBehaviour
                     card1.isAlreadyMatchedWithAnotherCard = true;
                     card2.isAlreadyMatchedWithAnotherCard = true;
                     count += 1;
+
+                    UpdateMatchedPairsCounter();
+
                     if (count == totalPairs && !didPlayerWinGame)
                     {
                         didPlayerWinGame = true; //mutex lock
@@ -189,7 +202,12 @@ public class CardGameMain : MonoBehaviour
 
     IEnumerator HandleWinCondition()
     {
-        yield return new WaitForSeconds(2f);
+        if (winPanel != null)
+        {
+            winPanel.SetActive(true);
+        }
+
+        yield return new WaitForSeconds(3f);
         DestroyAllCards();
         StartGame();
     }
@@ -204,12 +222,25 @@ public class CardGameMain : MonoBehaviour
         
     }
 
+    void UpdateMatchedPairsCounter()
+    {
+        if (matchedPairsCounterText != null)
+        {
+            matchedPairsCounterText.text = "Matched Pairs: " + count.ToString();
+        }
+    }
+
+
 
 
     // Update is called once per frame
     void Update()
     {
-
-
+        if (matchedPairsCounterText != null)
+        {
+            matchedPairsCounterText.text = "Matched Pairs: " + count.ToString();
+        }
     }
+
 }
+

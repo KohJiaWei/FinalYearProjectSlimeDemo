@@ -12,12 +12,12 @@ streams = resolve_stream()  # This resolves all available streams
 for i, stream in enumerate(streams):
     print(f"Stream {i}: Name={stream.name()}, Type={stream.type()}, Channels={stream.channel_count()}, Rate={stream.nominal_srate()}")
 
-# Select the first stream for demonstration purposes
-print("\nConnecting to first available stream...\n")
-inlet = StreamInlet(streams[0])  # Replace [0] with desired stream index
+# Select the third stream for EEG
+print("\nConnecting to EEG stream...\n")
+inlet = StreamInlet(streams[3])
 
 # Data collection parameters
-duration = 10  # Collect data for 5 seconds
+duration = 10  
 data_buffer = []
 
 print(f"Collecting data for {duration} seconds...")

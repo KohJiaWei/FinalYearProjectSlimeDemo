@@ -1,6 +1,5 @@
 using LSL;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class ReadingMuse2 : MonoBehaviour
@@ -8,22 +7,21 @@ public class ReadingMuse2 : MonoBehaviour
 {
     
     // We need to find the stream somehow. You must provide a StreamName in editor or before this object is Started.
-    public string StreamName;
-    ContinuousResolver resolver;
-
-    double max_chunk_duration = 0.2;  // Duration, in seconds, of buffer passed to pull_chunk. This must be > than average frame interval.
-
+    public string StreamName; // Set this in Unity to match one of the streams
+    private ContinuousResolver resolver;
     // We need to keep track of the inlet once it is resolved.
     private StreamInlet inlet;
-
     // We need buffers to pass to LSL when pulling data.
     private float[,] data_buffer;  // Note it's a 2D Array, not array of arrays. Each element has to be indexed specifically, no frames/columns.
     private double[] timestamp_buffer;
+    double max_chunk_duration = 0.2;  // Duration, in seconds, of buffer passed to pull_chunk. This must be > than average frame interval.
 
+    // For visualization
+    public LineRenderer lineRenderer; // Attach this for line graph visualization
+    private int maxPoints = 256; // Number of points in the graph
 
     IEnumerator ResolveExpectedStream()
     {
-        //Debug.Log("does it reach here?");
         var results = resolver.results();
         while (results.Length == 0)
         {
@@ -40,6 +38,7 @@ public class ReadingMuse2 : MonoBehaviour
         int n_channels = inlet.info().channel_count();
         data_buffer = new float[buf_samples, n_channels];
         timestamp_buffer = new double[buf_samples];
+        Debug.Log($"Connected to stream: {StreamName}");
     }
 
     void Start()
@@ -52,12 +51,14 @@ public class ReadingMuse2 : MonoBehaviour
             this.enabled = false;
             return;
         }
+        
         StartCoroutine(ResolveExpectedStream());
     }
 
     void Update()
     {
-        //Debug.Log(inlet);
+        
+        Debug.Log(inlet);
         if (inlet != null)
         {
             int samples_returned = inlet.pull_chunk(data_buffer, timestamp_buffer);
@@ -76,12 +77,30 @@ public class ReadingMuse2 : MonoBehaviour
                 float z = data_buffer[samples_returned - 1, 2];
 
                 Debug.Log($"{x}, {y}, {z}");
-                var new_scale = new Vector3(x, y, z);
-               
-                gameObject.transform.localScale = new_scale;
+                UpdateLineGraph(y);
+                //var new_scale = new Vector3(x, y, z);
+
+                //gameObject.transform.localScale = new_scale;
             }
         }
     }
+
+    void UpdateLineGraph(float value)
+    {
+        Debug.Log("Is Firdhaus going");
+        // Shift existing points in the line renderer
+        for (int i = 0; i < lineRenderer.positionCount - 1; i++)
+        {
+            var pos = lineRenderer.GetPosition(i + 1);
+            pos.x -= 1*5;
+            lineRenderer.SetPosition(i, pos);
+        }
+
+        // Add the latest value as the last point
+        Vector3 newPoint = new Vector3(lineRenderer.positionCount - 1, value, 0);
+        lineRenderer.SetPosition(lineRenderer.positionCount - 1, newPoint);
+    }
 }
+
 
 
