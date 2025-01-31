@@ -26,6 +26,7 @@ public class LightningInstance : MonoBehaviour
         }
         foreach (Health healthScript in AllHealth)
         {
+            if (healthScript.tag == "Player") { continue; }
             if (alreadyHit.Contains(healthScript))
             {
                 continue;
@@ -44,6 +45,7 @@ public class LightningInstance : MonoBehaviour
         Health closestSlimeTarget = null;
         foreach (Health distanceCloseEnoughHealthScript in SlimeList)
         {
+           
             float distance = Vector3.Distance(distanceCloseEnoughHealthScript.transform.position, endPos);
             if (distance < CurrentClosestSlimeDistance)
             {
@@ -51,6 +53,10 @@ public class LightningInstance : MonoBehaviour
                 closestSlimeTarget = distanceCloseEnoughHealthScript;
             }
             
+        }
+        if(closestSlimeTarget == null)
+        {
+            return;
         }
         closestSlimeTarget.TakeDamage(damage);
         var lightningInstantiation = Instantiate(this);

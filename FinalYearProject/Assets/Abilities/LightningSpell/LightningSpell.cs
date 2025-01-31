@@ -29,6 +29,11 @@ public class LightningSpell : MonoBehaviour
         hitMultiple = Physics.SphereCastAll(origin, sphereRadius, direction, maxDistance);
         foreach (var hit in hitMultiple )
         {
+            if ( hit.rigidbody == null) { continue; }
+            if(hit.rigidbody.tag == "Player")
+            {
+                continue;
+            }
             var healthScript = hit.collider.GetComponent<Health>();
             if (healthScript == null) {
                 continue;

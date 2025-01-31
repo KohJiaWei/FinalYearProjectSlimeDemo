@@ -1,14 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerShoot : MonoBehaviour
 {
+    [Header("References")]
     public Camera fpsCam;
     public GameObject projectilePrefab;
-    public float shootForce = 1000f;
     public Animator anim;
     public LightningSpell LightningSpell;
+
+    [Header("Shooting Settings")]
+    public float shootForce = 1000f;
 
     void Update()
     {
@@ -20,25 +24,27 @@ public class PlayerShoot : MonoBehaviour
 
     void Shoot()
     {
-        if (Input.GetKey(KeyCode.V)) 
+        // Lightning spell override
+        Keyboard keyboard = Keyboard.current;
+
+        if (Input.GetKey(KeyCode.V))
         {
             LightningSpell.Shoot();
+            return;
         }
-        else
-        {
-        if (projectilePrefab != null)
-        {
-            anim.Play("Attack01",0,0);
-            // Instantiate the projectile at the camera's position and rotation
-            GameObject projectile = Instantiate(projectilePrefab, fpsCam.transform.position, fpsCam.transform.rotation);
 
-            // Add force to the projectile
-            Rigidbody rb = projectile.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.AddForce(fpsCam.transform.forward * shootForce);
-            }
-        }
+        // Regular projectile attack
+        if (projectilePrefab == null) return;
+
+        anim.Play("Attack01", 0, 0);
+
+        // Instantiate projectile at the camera's position and rotation
+        GameObject projectile = Instantiate(projectilePrefab, fpsCam.transform.position, fpsCam.transform.rotation);
+
+        // Apply force if projectile has a Rigidbody
+        if (projectile.TryGetComponent(out Rigidbody rb))
+        {
+            rb.AddForce(fpsCam.transform.forward * shootForce);
         }
     }
 }
