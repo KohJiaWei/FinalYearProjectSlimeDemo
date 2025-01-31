@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class ReadingMuse2 : MonoBehaviour
 
-{
-    
+{   
     // We need to find the stream somehow. You must provide a StreamName in editor or before this object is Started.
     public string StreamName; // Set this in Unity to match one of the streams
     private ContinuousResolver resolver;
@@ -14,8 +13,7 @@ public class ReadingMuse2 : MonoBehaviour
     // We need buffers to pass to LSL when pulling data.
     private float[,] data_buffer;  // Note it's a 2D Array, not array of arrays. Each element has to be indexed specifically, no frames/columns.
     private double[] timestamp_buffer;
-    double max_chunk_duration = 0.2;  // Duration, in seconds, of buffer passed to pull_chunk. This must be > than average frame interval.
-
+    double max_chunk_duration = 0.2;  // Duration, in seconds, of buffer passed to pull_chunk. This must be > than average frame interval
     // For visualization
     public LineRenderer lineRenderer; // Attach this for line graph visualization
     private int maxPoints = 256; // Number of points in the graph
@@ -71,15 +69,14 @@ public class ReadingMuse2 : MonoBehaviour
                 // result to yet another stream that you capture in Unity.
                 // Most of the time we only care about the latest sample to get a visual representation of the latest
                 // state, so that's what we do here: take the last sample only and use it to udpate the object scale.
+
                 float x = data_buffer[samples_returned - 1, 0];
-                
                 float y = data_buffer[samples_returned - 1, 1];
                 float z = data_buffer[samples_returned - 1, 2];
 
                 Debug.Log($"{x}, {y}, {z}");
                 UpdateLineGraph(y);
                 //var new_scale = new Vector3(x, y, z);
-
                 //gameObject.transform.localScale = new_scale;
             }
         }
@@ -87,7 +84,6 @@ public class ReadingMuse2 : MonoBehaviour
 
     void UpdateLineGraph(float value)
     {
-        Debug.Log("Is Firdhaus going");
         // Shift existing points in the line renderer
         for (int i = 0; i < lineRenderer.positionCount - 1; i++)
         {
@@ -100,6 +96,7 @@ public class ReadingMuse2 : MonoBehaviour
         Vector3 newPoint = new Vector3(lineRenderer.positionCount - 1, value, 0);
         lineRenderer.SetPosition(lineRenderer.positionCount - 1, newPoint);
     }
+    
 }
 
 

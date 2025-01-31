@@ -1,57 +1,60 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
     public CharacterController controller;
+    public Transform playerBody;  // Reference to the player’s body (not the camera)
 
     public float walkSpeed = 5.0f;
-    public float speed = 12f;
+    public float runSpeed = 12f;
     public float gravity = -9.81f;
     public float jumpHeight = 3f;
-    public float runSpeed = 24f;
 
-    Vector3 velocity;
-    bool isGrounded;
+    private Vector3 velocity;
+    private bool isGrounded;
+    public Animator anim;
 
-    public Transform groundCheck;
-    public float groundDistance = 0.4f;
-    public LayerMask groundMask;
-
-    private float doubleTapTime = 0.3f;
+    void Start()
+    {
+        if (anim == null)
+        {
+            anim = GetComponent<Animator>();
+        }
+    }
 
     void Update()
     {
-        velocity = controller.velocity;
         isGrounded = controller.isGrounded;
-        //Debug.Log(isGrounded);
 
+        // Get movement input
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
 
-        Vector3 move = transform.right * x + transform.forward * z;
-        controller.Move(move * speed * Time.deltaTime);
+        // Move relative to the player's forward direction, NOT the camera
+        Vector3 move = playerBody.right * x + playerBody.forward * z;
+        move.Normalize();  // Prevent diagonal movement from being faster
 
-        if (Input.GetKey(KeyCode.LeftShift))
+        // Determine speed
+        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
+
+        // Apply movement
+        controller.Move(move * currentSpeed * Time.deltaTime);
+
+        // Update animation speed
+        float moveSpeed = move.magnitude;
+        if (anim != null)
         {
-            controller.Move(move * Time.deltaTime * runSpeed);
-        }
-        else
-        {
-            controller.Move(move * Time.deltaTime * walkSpeed);
+            anim.SetFloat("Speed", moveSpeed);
         }
 
+        // Jumping logic
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            velocity.y = 10;
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
 
+        // Apply gravity
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
     }
 }
-
-
-
