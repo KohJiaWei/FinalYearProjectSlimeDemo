@@ -13,17 +13,15 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 velocity;
     private bool isGrounded;
     public Animator anim;
-
-    void Start()
-    {
-        if (anim == null)
-        {
-            anim = GetComponent<Animator>();
-        }
-    }
+    private bool isJumping;
 
     void Update()
     {
+        if (isGrounded == false && controller.isGrounded == true)
+        {
+            anim.Play("JumpEnd");
+            isJumping = false;
+        }
         isGrounded = controller.isGrounded;
 
         // Get movement input
@@ -39,6 +37,14 @@ public class PlayerMovement : MonoBehaviour
 
         // Apply movement
         controller.Move(move * currentSpeed * Time.deltaTime);
+        if (!isJumping)
+        {
+            if (z > 0) anim.Play("BattleWalkForward");
+            else if (z < 0) anim.Play("BattleWalkBack");
+            else if (x > 0) anim.Play("BattleWalkRight");
+            else if (x < 0) anim.Play("BattleWalkLeft");
+        }
+
 
         // Update animation speed
         float moveSpeed = move.magnitude;
@@ -51,6 +57,9 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            anim.Play("JumpStart");
+            isJumping = true;
+
         }
 
         // Apply gravity
