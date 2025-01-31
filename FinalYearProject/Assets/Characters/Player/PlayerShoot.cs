@@ -8,7 +8,7 @@ public class PlayerShoot : MonoBehaviour
     public GameObject projectilePrefab;
     public float shootForce = 1000f;
     public Animator anim;
-
+    public LightningSpell LightningSpell;
 
     void Update()
     {
@@ -20,6 +20,12 @@ public class PlayerShoot : MonoBehaviour
 
     void Shoot()
     {
+        if (Input.GetKey(KeyCode.V)) 
+        {
+            LightningSpell.Shoot();
+        }
+        else
+        {
         if (projectilePrefab != null)
         {
             anim.Play("Attack01",0,0);
@@ -32,6 +38,7 @@ public class PlayerShoot : MonoBehaviour
             {
                 rb.AddForce(fpsCam.transform.forward * shootForce);
             }
+        }
         }
     }
 }

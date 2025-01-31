@@ -1,7 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.UI.Image;
+
 
 
 public class LightningSpell : MonoBehaviour
@@ -10,17 +9,16 @@ public class LightningSpell : MonoBehaviour
     public float range = 100f;
     public Camera fpsCam; // Assuming you're using a first-person camera
     public LightningInstance lightningInstance;
-    void Update()
-    {
-        //Debug.Log("Does this script even run");
-        if (Input.GetButtonDown("Fire1"))
-        {
-            Debug.Log("UpdatePlayerBullet");
-            Shoot();
-        }
-    }
-
-    void Shoot()
+    //void Update()
+    //{
+    //    //Debug.Log("Does this script even run");
+    //    if (Input.GetButtonDown("Fire1"))
+    //    {
+    //        Debug.Log("UpdatePlayerBullet");
+    //        Shoot();
+    //    }
+    //}
+        public void Shoot()
     {
         RaycastHit[] hitMultiple;
         Vector3 origin = fpsCam.transform.position;
