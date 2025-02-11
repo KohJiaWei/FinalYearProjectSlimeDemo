@@ -97,6 +97,7 @@ public class ReadingMuse2 : MonoBehaviour
         lineRenderer.SetPosition(lineRenderer.positionCount - 1, newPoint);
     }
     
+    
 }
 
 

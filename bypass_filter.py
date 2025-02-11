@@ -7,6 +7,8 @@ from pylsl import StreamInlet, resolve_stream, StreamInfo, StreamOutlet
 from collections import deque
 from scipy.fft import rfft, rfftfreq
 
+from tcp_client import UnityTCPClient
+
 """
 Size Range: 30-35 cm, ear to ear
 Wireless Connection: Bluetooth 4.2
@@ -42,6 +44,10 @@ FREQUENCY_BANDS = {
     'Beta': (13, 30),
     'Gamma': (30, 100)
 }
+
+# -------------
+# HELPER FUNCS
+# -------------
 
 def bandpass_filter(data, lowcut, highcut, fs, order=4):
     """
@@ -98,6 +104,14 @@ def compute_fft(data, fs):
 # ====================================================================================
 # First, we resolve EEG Stream from Muse 2
 # ====================================================================================
+try:
+    unity_client = UnityTCPClient(host="127.0.0.1", port=5005)
+    unity_client.connect()  # Attempt to connect at the start
+except Exception as e:
+    print("Error connecting to Unity:", e)
+    unity_client = None
+
+    
 print("Looking for an LSL EEG stream...")
 streams = resolve_stream('type', 'EEG') # Resolving LSL EEG streams
 if not streams:
@@ -190,7 +204,7 @@ warm_up_seconds = 2
 warm_up_samples = int(warm_up_seconds * fs)
 total_samples_collected = 0
 
-print("Starting real-time EEG processing...")
+print("Starting real-time EEG processing... (Ctrl+C to stop)")
 
 try:
     while True:
@@ -214,8 +228,9 @@ try:
             fft_buffer[-chunk_len:] = eeg_data[:, 0]
 
             # 6.2 Compute amplitude envelopes for each band
-            current_amplitudes = []
+            
             if total_samples_collected > warm_up_samples:
+                current_amplitudes = []
                 # Past warm-up: do real-time band analysis
                 for band_name, (low, high) in FREQUENCY_BANDS.items():
                     """
@@ -263,38 +278,25 @@ try:
                     # Avoid division by zero if alpha is extremely small
                     ratio = beta_val / alpha_val if alpha_val != 0 else 0.0
                     beta_alpha_ratio_list.append(ratio)
-            else:
-                # Still in warm-up: fill rolling baseline, no LSL push
-                for band_name, (low, high) in FREQUENCY_BANDS.items():
-                    filtered = bandpass_filter(eeg_buffer, low, high, fs)
-                    envelope = compute_amplitude_envelope(filtered)
-                    avg_env = np.mean(envelope, axis=1)
-                    latest_amp = avg_env[-1]
-                    rolling_baseline[band_name].append(latest_amp)
-
-                print(f"Warm-up in progress... {total_samples_collected} of {warm_up_samples} samples")
-
-            # 6.4 FFT computation
-            if total_samples_collected > warm_up_samples:
-                # Check if FFT buffer is mostly filled
+                    if ratio > 1.0 and unity_client is not None:
+                        try:
+                            unity_client.send("lightning")
+                        except Exception as e:
+                            print("Error sending to Unity:", e)
+                # FFT
                 if np.count_nonzero(fft_buffer) >= fft_window_size * 0.8:
-                    """
-                    we only run the fft if buffer is ~80% filled
-                    we apply a hanning window to minimize spectral leakage
-                    we push the resulting frequency magnitude via lsl
-                    """
                     window = np.hanning(fft_window_size)
                     windowed_data = fft_buffer * window
                     freqs, fft_mag = compute_fft(windowed_data, fs)
                     fft_out = fft_mag.tolist()
                     frequency_outlet.push_sample(fft_out)
 
-                # 6.5 Plotting
+                # Plot
                 ax1.clear()
                 ax2.clear()
                 ax3.clear()
 
-                # ax1: Plot normalized band amplitudes (most recent ~100 samples)
+                # Plot band amplitudes
                 for band_name, vals in amplitude_envelopes.items():
                     ax1.plot(vals[-100:], label=band_name)
                 ax1.set_title("Real-Time Band Amplitudes (Z-scored)")
@@ -302,22 +304,15 @@ try:
                 ax1.set_ylabel("Amplitude (z-score)")
                 ax1.legend(loc="upper right")
 
-                # ax2: Plot the FFT for channel 0
+                # Plot FFT
                 if freqs is not None and fft_mag is not None:
                     ax2.plot(freqs, fft_mag)
                     ax2.set_title("Real-Time FFT (Channel 0)")
                     ax2.set_xlabel("Frequency (Hz)")
                     ax2.set_ylabel("Magnitude")
-                    # Highlight typical bands (Delta/Theta/Alpha/Beta/Gamma)
-                    # Just an example for visuals:
-                    ax2.axvspan(0.5, 4, color='gray', alpha=0.1, label='Delta')
-                    ax2.axvspan(4, 8, color='purple', alpha=0.1, label='Theta')
-                    ax2.axvspan(8, 13, color='green', alpha=0.1, label='Alpha')
-                    ax2.axvspan(13, 30, color='blue', alpha=0.1, label='Beta')
-                    ax2.axvspan(30, 50, color='red', alpha=0.1, label='Gamma')
                     ax2.legend(loc="upper right")
 
-                # ax3: Plot Beta/Alpha ratio over time
+                # Plot Beta/Alpha ratio
                 ax3.plot(beta_alpha_ratio_list[-100:], label="Beta/Alpha Ratio", color='orange')
                 ax3.set_title("Beta/Alpha Ratio")
                 ax3.set_xlabel("Samples (last 100)")
@@ -328,6 +323,15 @@ try:
                 plt.tight_layout()
                 plt.draw()
                 plt.pause(0.01)
+            else:
+                # Warm-up phase: just collect baseline
+                print(f"Warm-up in progress... {total_samples_collected}/{warm_up_samples} samples")
+                for band_name, (low, high) in FREQUENCY_BANDS.items():
+                    filtered = bandpass_filter(eeg_buffer, low, high, fs)
+                    envelope = compute_amplitude_envelope(filtered)
+                    avg_env = np.mean(envelope, axis=1)
+                    latest_amp = avg_env[-1]
+                    rolling_baseline[band_name].append(latest_amp)
 
         else:
             print("No samples received. Retrying...")
@@ -337,3 +341,5 @@ except KeyboardInterrupt:
     print("Real-time EEG processing stopped.")
 
 plt.close(fig)
+if unity_client is not None:
+    unity_client.close()
