@@ -20,11 +20,12 @@ public class PlayerShoot : MonoBehaviour
     private Thread serverThread;
     private bool running = true;
 
-    // Shared variable that toggles lightning usage
-    private volatile bool useLightningSpell = false;
-
     // The port to listen on
     private int port = 5005;
+
+    // Lightning charge tracking
+    private int lightningCharges = 0;
+    private const int maxCharges = 3;
 
     void Start()
     {
@@ -39,9 +40,11 @@ public class PlayerShoot : MonoBehaviour
         // On left click, decide which attack to perform
         if (Input.GetMouseButtonDown(0))
         {
-            if (useLightningSpell)
+            if (lightningCharges>0)
             {
                 LightningSpell.Shoot();
+                lightningCharges--;  // Use one charge
+                Debug.Log($"Lightning spell used! Remaining charges: {lightningCharges}");
             }
             else
             {
@@ -123,14 +126,17 @@ public class PlayerShoot : MonoBehaviour
                 {
                     string message = Encoding.ASCII.GetString(buffer, 0, bytesRead).Trim();
                     Debug.Log("Message from client: " + message);
-
-                    if (message == "lightning")
+                    if (message == "AddLightningCharge")
                     {
-                        useLightningSpell = true;
-                    }
-                    else
-                    {
-                        useLightningSpell = false;
+                        if (lightningCharges < maxCharges)
+                        {
+                            lightningCharges++;
+                            Debug.Log($"Lightning charge added! Current charges: {lightningCharges}");
+                        }
+                        else
+                        {
+                            Debug.Log("Lightning charge already at max!");
+                        }
                     }
                 }
             }

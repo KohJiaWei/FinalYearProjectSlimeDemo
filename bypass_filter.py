@@ -1,4 +1,7 @@
 import numpy as np
+import tkinter as tk
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import time
 
@@ -8,6 +11,12 @@ from collections import deque
 from scipy.fft import rfft, rfftfreq
 
 from tcp_client import UnityTCPClient
+
+_root = tk.Tk()
+_root.withdraw()
+
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
+plt.ion()  # Enable interactive mode
 
 """
 Size Range: 30-35 cm, ear to ear
@@ -37,6 +46,7 @@ Muse App Compatibility: iOS 13, Android 8 or higher, Huawei devices not supporte
 # EEG Frequency Bands Definition
 # ====================================================================================
 
+
 FREQUENCY_BANDS = {
     # 'Delta': (0.5, 4),
     # 'Theta': (4, 8),
@@ -49,6 +59,15 @@ FREQUENCY_BANDS = {
 # HELPER FUNCS
 # -------------
 
+MAX_CHARGES = 3
+
+def is_window_minimized():
+    """Check if the Matplotlib figure window is minimized (iconified)."""
+    try:
+        return fig.canvas.manager.window.state() == 'iconic'
+    except AttributeError:
+        return False
+    
 def bandpass_filter(data, lowcut, highcut, fs, order=4):
     """
     Apply a bandpass filter to the input data.
@@ -107,6 +126,7 @@ def compute_fft(data, fs):
 try:
     unity_client = UnityTCPClient(host="127.0.0.1", port=5005)
     unity_client.connect()  # Attempt to connect at the start
+    print("Connected to Unity TCP server.")
 except Exception as e:
     print("Error connecting to Unity:", e)
     unity_client = None
@@ -160,10 +180,8 @@ fft_buffer is for single channel that we want to run FFT on
 """
 buffer_duration = 2  # Buffer duration in seconds
 buffer_size = int(fs * buffer_duration)
-# BUFFER_SIZE = 512  # Window size for FFT (adjust as needed)
 eeg_buffer = np.zeros((buffer_size, eeg_inlet.info().channel_count()))
-# eeg_buffer = np.zeros((BUFFER_SIZE, 5))  # Buffer for 5 EEG channels
-timestamp_buffer = np.zeros(buffer_size)
+
 
 print("verify that fs,buffersize ",fs,buffer_size,eeg_inlet.info().channel_count())
 
@@ -187,31 +205,32 @@ rolling_baseline = {
     for band in FREQUENCY_BANDS.keys()
 }
 
-beta_alpha_ratio_list = []
+
 
 # We'll store normalized amplitude envelopes here
 amplitude_envelopes = {band: [] for band in FREQUENCY_BANDS.keys()}
+beta_alpha_ratio_list = []
 freqs = None
 fft_mag = None
 
 # ====================================================================================
 # Real-time EEG Processing
 # ====================================================================================
-plt.ion()
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
 
 warm_up_seconds = 2
 warm_up_samples = int(warm_up_seconds * fs)
 total_samples_collected = 0
 
+lightning_charges = 0  # how many times user can cast lightning (max 3)
+
 print("Starting real-time EEG processing... (Ctrl+C to stop)")
 
 try:
     while True:
+
         samples, timestamps = eeg_inlet.pull_chunk(timeout=1.0, max_samples=buffer_size)
         if samples:
             eeg_data = np.array(samples)
-            timestamps = np.array(timestamps)
             chunk_len = len(eeg_data)
             total_samples_collected += chunk_len
 
@@ -219,9 +238,6 @@ try:
             # Roll the main EEG buffer
             eeg_buffer = np.roll(eeg_buffer, -chunk_len, axis=0)
             eeg_buffer[-chunk_len:, :] = eeg_data
-
-            timestamp_buffer = np.roll(timestamp_buffer, -chunk_len)
-            timestamp_buffer[-chunk_len:] = timestamps
 
             # Roll the FFT buffer (channel 0)
             fft_buffer = np.roll(fft_buffer, -chunk_len, axis=0)
@@ -253,12 +269,8 @@ try:
 
                     # Rolling baseline for Z-scoring
                     rolling_baseline[band_name].append(latest_amp)
-                    if len(rolling_baseline[band_name]) > 1:
-                        baseline_mean = np.mean(rolling_baseline[band_name])
-                        baseline_std = np.std(rolling_baseline[band_name])
-                    else:
-                        baseline_mean = 0.0
-                        baseline_std = 1.0
+                    baseline_mean = np.mean(rolling_baseline[band_name]) if len(rolling_baseline[band_name]) > 1 else 0
+                    baseline_std  = np.std(rolling_baseline[band_name])  if len(rolling_baseline[band_name]) > 1 else 1
 
                     if baseline_std == 0:
                         normalized_val = latest_amp
@@ -272,74 +284,94 @@ try:
                 amplitude_outlet.push_sample(current_amplitudes)
 
                 # 6.3 Beta/Alpha ratio
-                if len(amplitude_envelopes['Alpha']) > 0 and len(amplitude_envelopes['Beta']) > 0:
-                    alpha_val = amplitude_envelopes['Alpha'][-1]
-                    beta_val  = amplitude_envelopes['Beta'][-1]
-                    # Avoid division by zero if alpha is extremely small
-                    ratio = beta_val / alpha_val if alpha_val != 0 else 0.0
-                    beta_alpha_ratio_list.append(ratio)
-                    if ratio > 1.0 and unity_client is not None:
-                        try:
-                            unity_client.send("lightning")
-                        except Exception as e:
-                            print("Error sending to Unity:", e)
-                # FFT
+                if 'Alpha' in amplitude_envelopes and 'Beta' in amplitude_envelopes:
+                    if len(amplitude_envelopes['Alpha']) > 0 and len(amplitude_envelopes['Beta']) > 0:
+                        alpha_val = amplitude_envelopes['Alpha'][-1]
+                        beta_val  = amplitude_envelopes['Beta'][-1]
+                        ratio = beta_val / alpha_val if alpha_val != 0 else 0.0
+                        beta_alpha_ratio_list.append(ratio)
+
+                        # Send to Unity if ratio > 1
+                        if ratio > 1.0 and unity_client is not None:
+                            
+                            if lightning_charges < MAX_CHARGES:
+                                lightning_charges += 1
+                                # Inform Unity that we gained a charge
+                                try:
+                                    unity_client.send("AddLightningCharge")
+                                    print(f"Lightning charges = {lightning_charges}, sent AddLightningCharge to Unity.")
+                                except Exception as e:
+                                    print("Error sending AddLightningCharge to Unity:", e)
+
+                # Compute FFT occasionally
                 if np.count_nonzero(fft_buffer) >= fft_window_size * 0.8:
                     window = np.hanning(fft_window_size)
                     windowed_data = fft_buffer * window
                     freqs, fft_mag = compute_fft(windowed_data, fs)
-                    fft_out = fft_mag.tolist()
-                    frequency_outlet.push_sample(fft_out)
+                    frequency_outlet.push_sample(fft_mag.tolist())
 
-                # Plot
-                ax1.clear()
-                ax2.clear()
-                ax3.clear()
-
-                # Plot band amplitudes
-                for band_name, vals in amplitude_envelopes.items():
-                    ax1.plot(vals[-100:], label=band_name)
-                ax1.set_title("Real-Time Band Amplitudes (Z-scored)")
-                ax1.set_xlabel("Samples (last 100)")
-                ax1.set_ylabel("Amplitude (z-score)")
-                ax1.legend(loc="upper right")
-
-                # Plot FFT
-                if freqs is not None and fft_mag is not None:
-                    ax2.plot(freqs, fft_mag)
-                    ax2.set_title("Real-Time FFT (Channel 0)")
-                    ax2.set_xlabel("Frequency (Hz)")
-                    ax2.set_ylabel("Magnitude")
-                    ax2.legend(loc="upper right")
-
-                # Plot Beta/Alpha ratio
-                ax3.plot(beta_alpha_ratio_list[-100:], label="Beta/Alpha Ratio", color='orange')
-                ax3.set_title("Beta/Alpha Ratio")
-                ax3.set_xlabel("Samples (last 100)")
-                ax3.set_ylabel("Ratio")
-                ax3.axhline(y=1.0, color='red', linestyle='--', label='Ratio=1')
-                ax3.legend(loc="upper right")
-
-                plt.tight_layout()
-                plt.draw()
-                plt.pause(0.01)
             else:
-                # Warm-up phase: just collect baseline
+                # Warm-up
                 print(f"Warm-up in progress... {total_samples_collected}/{warm_up_samples} samples")
+                # Collect baseline
                 for band_name, (low, high) in FREQUENCY_BANDS.items():
                     filtered = bandpass_filter(eeg_buffer, low, high, fs)
                     envelope = compute_amplitude_envelope(filtered)
                     avg_env = np.mean(envelope, axis=1)
                     latest_amp = avg_env[-1]
                     rolling_baseline[band_name].append(latest_amp)
-
         else:
             print("No samples received. Retrying...")
             time.sleep(0.1)
+            continue
+
+        # -----------------------------------------------
+        # B) Check if minimized. If minimized, skip plotting.
+        # -----------------------------------------------
+        if is_window_minimized():
+            # Skip heavy re-drawing, but keep the window "alive"
+            plt.pause(0.3)  
+            continue
+
+        # -----------------------------------------------
+        # C) Plot if not minimized
+        # -----------------------------------------------
+        if total_samples_collected > warm_up_samples:
+            ax1.clear()
+            ax2.clear()
+            ax3.clear()
+
+            # ax1: Plot band amplitudes (most recent ~100 points)
+            for band_name, vals in amplitude_envelopes.items():
+                ax1.plot(vals[-100:], label=band_name)
+            ax1.set_title("Real-Time Band Amplitudes (Z-scored)")
+            ax1.set_xlabel("Samples (last 100)")
+            ax1.set_ylabel("Amplitude (z-score)")
+            ax1.legend(loc="upper right")
+
+            # ax2: Plot FFT if available
+            if freqs is not None and fft_mag is not None:
+                ax2.plot(freqs, fft_mag, label="FFT Mag")
+                ax2.set_title("Real-Time FFT (Channel 0)")
+                ax2.set_xlabel("Frequency (Hz)")
+                ax2.set_ylabel("Magnitude")
+                ax2.legend(loc="upper right")
+
+            # ax3: Plot Beta/Alpha ratio
+            ax3.plot(beta_alpha_ratio_list[-100:], label="Beta/Alpha Ratio", color='orange')
+            ax3.set_title("Beta/Alpha Ratio")
+            ax3.set_xlabel("Samples (last 100)")
+            ax3.set_ylabel("Ratio")
+            ax3.axhline(y=1.0, color='red', linestyle='--', label='Ratio=1')
+            ax3.legend(loc="upper right")
+
+            plt.tight_layout()
+            plt.draw()
+            plt.pause(0.01)
 
 except KeyboardInterrupt:
     print("Real-time EEG processing stopped.")
-
-plt.close(fig)
-if unity_client is not None:
-    unity_client.close()
+finally:
+    plt.close(fig)
+    if unity_client is not None:
+        unity_client.close()
