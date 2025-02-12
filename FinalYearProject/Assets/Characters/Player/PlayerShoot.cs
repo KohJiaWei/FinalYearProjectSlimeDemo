@@ -24,8 +24,8 @@ public class PlayerShoot : MonoBehaviour
     private int port = 5005;
 
     // Lightning charge tracking
-    private int lightningCharges = 0;
-    private const int maxCharges = 3;
+    public int lightningCharges = 0;
+    public const int maxCharges = 3;
 
     void Start()
     {

@@ -59,7 +59,8 @@ FREQUENCY_BANDS = {
 # HELPER FUNCS
 # -------------
 
-MAX_CHARGES = 3
+CHARGE_DELAY = 5  # seconds
+last_charge_time = 0  # Track last time a charge was added
 
 def is_window_minimized():
     """Check if the Matplotlib figure window is minimized (iconified)."""
@@ -221,7 +222,7 @@ warm_up_seconds = 2
 warm_up_samples = int(warm_up_seconds * fs)
 total_samples_collected = 0
 
-lightning_charges = 0  # how many times user can cast lightning (max 3)
+
 
 print("Starting real-time EEG processing... (Ctrl+C to stop)")
 
@@ -293,15 +294,17 @@ try:
 
                         # Send to Unity if ratio > 1
                         if ratio > 1.0 and unity_client is not None:
+                            current_time = time.time()
                             
-                            if lightning_charges < MAX_CHARGES:
-                                lightning_charges += 1
+                            if current_time - last_charge_time >= CHARGE_DELAY:
+                    
+                                last_charge_time = current_time
                                 # Inform Unity that we gained a charge
                                 try:
                                     unity_client.send("AddLightningCharge")
-                                    print(f"Lightning charges = {lightning_charges}, sent AddLightningCharge to Unity.")
                                 except Exception as e:
                                     print("Error sending AddLightningCharge to Unity:", e)
+
 
                 # Compute FFT occasionally
                 if np.count_nonzero(fft_buffer) >= fft_window_size * 0.8:
