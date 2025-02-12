@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 public class PlayerShoot : MonoBehaviour
 {
@@ -161,3 +162,200 @@ public class PlayerShoot : MonoBehaviour
         }
     }
 }
+
+
+/*
+ using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using TMPro;
+
+public class PlayerShoot : MonoBehaviour
+{
+    [Header("References")]
+    public Camera fpsCam;
+    public GameObject projectilePrefab;
+    public Animator anim;
+    public LightningSpell LightningSpell;
+
+    [Header("Shooting Settings")]
+    public float shootForce = 1000f;
+
+    // UI Text (TMP)
+    public TMP_Text lightningChargesText;  // <-- Reference to your TextMeshPro object
+
+    private Thread serverThread;
+    private bool running = true;
+
+    // TCP port
+    private int port = 5005;
+
+    // Lightning charge tracking
+    public int lightningCharges = 0;
+    public const int maxCharges = 3;
+
+    void Start()
+    {
+        // Show initial UI state
+        UpdateLightningUI();
+
+        // Start the TCP listener thread
+        serverThread = new Thread(TCPServerLoop);
+        serverThread.IsBackground = true;
+        serverThread.Start();
+    }
+
+    void Update()
+    {
+        // On left click, decide which attack to perform
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (lightningCharges > 0)
+            {
+                // Use a charge and shoot lightning
+                LightningSpell.Shoot();
+                lightningCharges--;
+                Debug.Log($"Lightning spell used! Remaining charges: {lightningCharges}");
+                UpdateLightningUI();
+            }
+            else
+            {
+                // Normal projectile shoot
+                Shoot();
+            }
+        }
+    }
+
+    void Shoot()
+    {
+        if (projectilePrefab == null) return;
+        anim.Play("Attack01", 0, 0);
+
+        GameObject projectile = Instantiate(projectilePrefab, fpsCam.transform.position, fpsCam.transform.rotation);
+        if (projectile.TryGetComponent(out Rigidbody rb))
+        {
+            rb.AddForce(fpsCam.transform.forward * shootForce);
+        }
+    }
+
+    /// <summary>
+    /// Continuously listens for incoming connections on the specified port.
+    /// When a client connects, it spins off a new thread to handle messages from that client.
+    /// </summary>
+    void TCPServerLoop()
+    {
+        TcpListener listener = null;
+
+        try
+        {
+            listener = new TcpListener(IPAddress.Any, port);
+            listener.Start();
+            Debug.Log("TCP Server started. Listening on port " + port);
+
+            while (running)
+            {
+                if (!listener.Pending())
+                {
+                    Thread.Sleep(100);
+                    continue;
+                }
+
+                TcpClient client = listener.AcceptTcpClient();
+                Debug.Log("Client connected.");
+
+                // Handle this client in a separate thread
+                Thread clientThread = new Thread(() => ClientHandler(client));
+                clientThread.IsBackground = true;
+                clientThread.Start();
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("TCPServerLoop Error: " + e.Message);
+        }
+        finally
+        {
+            if (listener != null)
+            {
+                listener.Stop();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reads data from a connected client until the connection closes.
+    /// Adjust the lightningCharges based on incoming messages.
+    /// </summary>
+    void ClientHandler(TcpClient client)
+    {
+        try
+        {
+            using (NetworkStream stream = client.GetStream())
+            {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
+                {
+                    string message = Encoding.ASCII.GetString(buffer, 0, bytesRead).Trim();
+                    Debug.Log("Message from client: " + message);
+
+                    if (message == "AddLightningCharge")
+                    {
+                        if (lightningCharges < maxCharges)
+                        {
+                            lightningCharges++;
+                            Debug.Log($"Lightning charge added! Current charges: {lightningCharges}");
+
+                            // Make sure to update UI from main thread => use a thread-safe call or queue
+                            // For simplicity, you can call UpdateLightningUI() here if it's safe to do so:
+                            UpdateLightningUI();
+                        }
+                        else
+                        {
+                            Debug.Log("Lightning charge already at max!");
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("ClientHandler Error: " + e.Message);
+        }
+        finally
+        {
+            client.Close();
+            Debug.Log("Client disconnected.");
+        }
+    }
+
+    /// <summary>
+    /// Called when the application quits to end the server thread.
+    /// </summary>
+    void OnApplicationQuit()
+    {
+        running = false;
+        if (serverThread != null && serverThread.IsAlive)
+        {
+            serverThread.Abort();
+        }
+    }
+
+    /// <summary>
+    /// Updates the UI text to show the current lightning charge count.
+    /// </summary>
+    private void UpdateLightningUI()
+    {
+        if (lightningChargesText != null)
+        {
+            lightningChargesText.text = $"Lightning Charges: {lightningCharges}";
+        }
+    }
+}
+
+
+ */
