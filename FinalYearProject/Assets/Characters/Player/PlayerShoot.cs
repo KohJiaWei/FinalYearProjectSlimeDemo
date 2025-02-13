@@ -75,11 +75,14 @@ public class PlayerShoot : MonoBehaviour
     /// Continuously listens for incoming connections on the specified port.
     /// When a client connects, it spins off a new thread to handle messages from that client.
     /// </summary>
+    /// 
+
     void TCPServerLoop()
     {
         TcpListener listener = null;
 
         try
+           
         {
             listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
@@ -135,14 +138,18 @@ public class PlayerShoot : MonoBehaviour
                     Debug.Log("Message from client: " + message);
                     if (message == "AddLightningCharge")
                     {
-                        if (lightningCharges < maxCharges)
+                        // Enqueue the UI update action on the main thread
+                        MainThreadDispatcher.Actions.Enqueue(() =>
                         {
-                            GainCharge();
-                        }
-                        else
-                        {
-                            Debug.Log("Lightning charge already at max!");
-                        }
+                            if (lightningCharges < maxCharges)
+                            {
+                                GainCharge();
+                            }
+                            else
+                            {
+                                Debug.Log("Lightning charge already at max!");
+                            }
+                        });
                     }
                 }
             }
@@ -157,6 +164,7 @@ public class PlayerShoot : MonoBehaviour
             Debug.Log("Client disconnected.");
         }
     }
+
 
     void OnApplicationQuit()
     {
