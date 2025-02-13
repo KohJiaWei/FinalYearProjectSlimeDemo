@@ -26,9 +26,10 @@ public class Health : MonoBehaviour
             }
         }
     }
+
     public void TakeDamage(float damage)
     {
-    
+        if (this.enabled == false) return;
         for (int i = 0; i < arrayOfRenderers.Length; i++)
         {
             arrayOfRenderers[i].material.color = hitColor;
