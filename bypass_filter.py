@@ -291,6 +291,8 @@ try:
                         beta_val  = amplitude_envelopes['Beta'][-1]
                         ratio = beta_val / alpha_val if alpha_val != 0 else 0.0
                         beta_alpha_ratio_list.append(ratio)
+                        if unity_client is not None:
+                            unity_client.send(f"{ratio}")
 
                         # Send to Unity if ratio > 1
                         if ratio > 1.0 and unity_client is not None:

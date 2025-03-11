@@ -70,12 +70,12 @@ public class ReadingMuse2 : MonoBehaviour
                 // Most of the time we only care about the latest sample to get a visual representation of the latest
                 // state, so that's what we do here: take the last sample only and use it to udpate the object scale.
 
-                float x = data_buffer[samples_returned - 1, 0];
-                float y = data_buffer[samples_returned - 1, 1];
-                float z = data_buffer[samples_returned - 1, 2];
+                float TP9 = data_buffer[samples_returned - 1, 0];
+                float AF7 = data_buffer[samples_returned - 1, 1];
+                float AF8 = data_buffer[samples_returned - 1, 2];
 
-                Debug.Log($"{x}, {y}, {z}");
-                UpdateLineGraph(y);
+                Debug.Log($"{TP9}, {AF7}, {AF8}");
+                UpdateLineGraph(AF7);
                 //var new_scale = new Vector3(x, y, z);
                 //gameObject.transform.localScale = new_scale;
             }

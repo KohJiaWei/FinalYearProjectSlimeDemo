@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 using TMPro;
 using JetBrains.Annotations;
 using System.Runtime.CompilerServices;
+using PimDeWitte.UnityMainThreadDispatcher;
 
 public class PlayerShoot : MonoBehaviour
 {
@@ -31,6 +32,9 @@ public class PlayerShoot : MonoBehaviour
     public const int maxCharges = 3;
 
     public TMP_Text lightningChargesText;
+    public ConcentrationBar concentrationBar;
+
+
 
     void Start()
     {
@@ -47,17 +51,34 @@ public class PlayerShoot : MonoBehaviour
         // On left click, decide which attack to perform
         if (Input.GetMouseButtonDown(0))
         {
-            if (lightningCharges>0)
+            if (lightningCharges > 0)
             {
                 UseCharge();
                 LightningSpell.Shoot();
-                
+
             }
             else
             {
                 Shoot();
             }
         }
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+            concentrationBar.UpdateConcentration(0.3f); // Correct
+                Debug.Log("Concentration bar set to low (green).");
+            }
+            if (Input.GetKeyDown(KeyCode.Y))
+            {
+            concentrationBar.UpdateConcentration(0.75f);
+                Debug.Log("Concentration bar set to medium (orange).");
+            }
+            if (Input.GetKeyDown(KeyCode.U))
+            {
+            concentrationBar.UpdateConcentration(1.2f);
+                Debug.Log("Concentration bar set to high (red).");
+            }
+        
+
     }
 
     void Shoot()
@@ -82,7 +103,7 @@ public class PlayerShoot : MonoBehaviour
         TcpListener listener = null;
 
         try
-           
+
         {
             listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
@@ -136,9 +157,10 @@ public class PlayerShoot : MonoBehaviour
                 {
                     string message = Encoding.ASCII.GetString(buffer, 0, bytesRead).Trim();
                     Debug.Log("Message from client: " + message);
+
                     if (message == "AddLightningCharge")
                     {
-                        // Enqueue the UI update action on the main thread
+                        // Enqueue UI and charge updates on the main thread
                         MainThreadDispatcher.Actions.Enqueue(() =>
                         {
                             if (lightningCharges < maxCharges)
@@ -148,6 +170,21 @@ public class PlayerShoot : MonoBehaviour
                             else
                             {
                                 Debug.Log("Lightning charge already at max!");
+                            }
+                        });
+                    }
+                    else if (float.TryParse(message, out float betaAlphaRatio))
+                    {
+                        Debug.Log($"Parsed concentration value: {betaAlphaRatio}");
+                        MainThreadDispatcher.Actions.Enqueue(() =>
+                        {
+                            if (concentrationBar != null)
+                            {
+                                concentrationBar.UpdateConcentration(betaAlphaRatio);
+                            }
+                            else
+                            {
+                                Debug.LogError("ConcentrationBar is not assigned in PlayerShoot!");
                             }
                         });
                     }
@@ -164,6 +201,7 @@ public class PlayerShoot : MonoBehaviour
             Debug.Log("Client disconnected.");
         }
     }
+
 
 
     void OnApplicationQuit()
@@ -192,6 +230,10 @@ public class PlayerShoot : MonoBehaviour
     {
         lightningCharges++;
         lightningChargesText.text = $"Lightning Charges: {lightningCharges}";
+        MainThreadDispatcher.Actions.Enqueue(() =>
+        {
+            UpdateLightningUI();
+        });
     }
 
 }
