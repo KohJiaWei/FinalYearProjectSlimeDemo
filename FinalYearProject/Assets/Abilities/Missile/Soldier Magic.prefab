@@ -1,0 +1,252 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1987058386280102594
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3499276925905879745}
+  - component: {fileID: 8889187930998239568}
+  - component: {fileID: -1903833847407354875}
+  m_Layer: 7
+  m_Name: Soldier Magic
+  m_TagString: Ability
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3499276925905879745
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1987058386280102594}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 30.61, y: 10, z: 53.95}
+  m_LocalScale: {x: 1.2, y: 0.8, z: 0.4}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6266814267871135303}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8889187930998239568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1987058386280102594}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50d1e78fc78d28c46aba2869a350ee49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 70
+  damage: 25
+  lifetime: 5
+--- !u!54 &-1903833847407354875
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1987058386280102594}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!1001 &6282522212394034107
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3499276925905879745}
+    m_Modifications:
+    - target: {fileID: 128408620968732156, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 128408620968732156, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 128408620968732156, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 128408620968732156, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 128408620968732156, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 128408620968732156, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 128408620968732156, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 128408620968732156, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 128408620968732156, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 128408620968732156, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Vector4f.m_Array.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[0].m_Name
+      value: Turbulence intensity
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[1].m_Name
+      value: Turbulence drag
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[2].m_Name
+      value: Particle size
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[0].m_Value
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[1].m_Value
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[2].m_Value
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Vector4f.m_Array.Array.data[0].m_Name
+      value: Particle color
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[0].m_Overridden
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[1].m_Overridden
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[2].m_Overridden
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Vector4f.m_Array.Array.data[0].m_Value.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Vector4f.m_Array.Array.data[0].m_Value.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Vector4f.m_Array.Array.data[0].m_Value.y
+      value: 16.37733
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Vector4f.m_Array.Array.data[0].m_Value.z
+      value: 23.049574
+      objectReference: {fileID: 0}
+    - target: {fileID: 4950828535749452477, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_PropertySheet.m_Vector4f.m_Array.Array.data[0].m_Overridden
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5304132809508283542, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_Name
+      value: MagicBall
+      objectReference: {fileID: 0}
+    - target: {fileID: 5304132809508283542, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 5304132809508283542, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_TagString
+      value: Ability
+      objectReference: {fileID: 0}
+    - target: {fileID: 8629168474073802168, guid: 799cd60c6787b764b8a3a0675cee9cde,
+        type: 3}
+      propertyPath: m_Radius
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 799cd60c6787b764b8a3a0675cee9cde, type: 3}
+--- !u!4 &6266814267871135303 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 128408620968732156, guid: 799cd60c6787b764b8a3a0675cee9cde,
+    type: 3}
+  m_PrefabInstance: {fileID: 6282522212394034107}
+  m_PrefabAsset: {fileID: 0}

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem.Utilities;
 
 public class SlimeAI : MonoBehaviour
 {
@@ -18,6 +17,7 @@ public class SlimeAI : MonoBehaviour
     private Renderer rendererSlime;
     private Rigidbody rb;
     private Collider[] slimeColliders;
+    protected Vector3 combinedDirection;
 
     void Start()
     {
@@ -36,6 +36,7 @@ public class SlimeAI : MonoBehaviour
 
     void Update()
     {
+        SlimeSpellUpdate();
         if (target != null)
         {
             // Calculate player direction
@@ -44,7 +45,7 @@ public class SlimeAI : MonoBehaviour
 
             // Add separation from other slimes
             Vector3 separation = CalculateSeparation();
-            Vector3 combinedDirection = (horizontalDirection + separation).normalized;
+            combinedDirection = (horizontalDirection + separation).normalized;
 
             // Move with separation
             rb.MovePosition(transform.position + combinedDirection * moveSpeed * Time.deltaTime);
@@ -92,7 +93,8 @@ public class SlimeAI : MonoBehaviour
     }
 
     void OnCollisionEnter(Collision collision)
-    { 
+    {
+       
         if (collision.gameObject.tag == "Player")
         {
             collision.gameObject.GetComponent<Health>().TakeDamage(9);
@@ -101,5 +103,9 @@ public class SlimeAI : MonoBehaviour
 
         }
     }
+    public virtual void SlimeSpellUpdate(){
+        
+       }
+
  }
 

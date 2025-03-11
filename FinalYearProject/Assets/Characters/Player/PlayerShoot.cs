@@ -9,6 +9,7 @@ using TMPro;
 using JetBrains.Annotations;
 using System.Runtime.CompilerServices;
 using PimDeWitte.UnityMainThreadDispatcher;
+using System.Timers;
 
 public class PlayerShoot : MonoBehaviour
 {
@@ -19,7 +20,7 @@ public class PlayerShoot : MonoBehaviour
     public LightningSpell LightningSpell;
 
     [Header("Shooting Settings")]
-    public float shootForce = 1000f;
+    //public float shootForce = 1000f;
 
     private Thread serverThread;
     private bool running = true;
@@ -34,6 +35,9 @@ public class PlayerShoot : MonoBehaviour
     public TMP_Text lightningChargesText;
     public ConcentrationBar concentrationBar;
 
+    public float ShootCooldown = 0.3f;
+
+    private float ShootCooldownTimer;
 
 
     void Start()
@@ -49,34 +53,41 @@ public class PlayerShoot : MonoBehaviour
     void Update()
     {
         // On left click, decide which attack to perform
+        
+        ShootCooldownTimer += Time.deltaTime;
         if (Input.GetMouseButtonDown(0))
         {
-            if (lightningCharges > 0)
+            if (ShootCooldownTimer > ShootCooldown)
             {
-                UseCharge();
-                LightningSpell.Shoot();
+                ShootCooldownTimer = 0f;
+                if (lightningCharges > 0)
+                {
+                    UseCharge();
+                    LightningSpell.Shoot();
 
+                }
+                else
+                {
+                    Shoot();
+                }
             }
-            else
-            {
-                Shoot();
-            }
+
         }
-            if (Input.GetKeyDown(KeyCode.T))
-            {
-            concentrationBar.UpdateConcentration(0.3f); // Correct
-                Debug.Log("Concentration bar set to low (green).");
-            }
-            if (Input.GetKeyDown(KeyCode.Y))
-            {
-            concentrationBar.UpdateConcentration(0.75f);
-                Debug.Log("Concentration bar set to medium (orange).");
-            }
-            if (Input.GetKeyDown(KeyCode.U))
-            {
-            concentrationBar.UpdateConcentration(1.2f);
-                Debug.Log("Concentration bar set to high (red).");
-            }
+            //if (Input.GetKeyDown(KeyCode.T))
+            //{
+            //concentrationBar.UpdateConcentration(0.3f); // Correct
+            //    Debug.Log("Concentration bar set to low (green).");
+            //}
+            //if (Input.GetKeyDown(KeyCode.Y))
+            //{
+            //concentrationBar.UpdateConcentration(0.75f);
+            //    Debug.Log("Concentration bar set to medium (orange).");
+            //}
+            //if (Input.GetKeyDown(KeyCode.U))
+            //{
+            //concentrationBar.UpdateConcentration(1.2f);
+            //    Debug.Log("Concentration bar set to high (red).");
+            //}
         
 
     }
@@ -86,10 +97,10 @@ public class PlayerShoot : MonoBehaviour
         if (projectilePrefab == null) return;
         anim.Play("Attack01", 0, 0);
         GameObject projectile = Instantiate(projectilePrefab, fpsCam.transform.position, fpsCam.transform.rotation);
-        if (projectile.TryGetComponent(out Rigidbody rb))
-        {
-            rb.AddForce(fpsCam.transform.forward * shootForce);
-        }
+        //if (projectile.TryGetComponent(out Rigidbody rb))
+        //{
+        //    rb.AddForce(fpsCam.transform.forward * shootForce);
+        //}
     }
 
     /// <summary>

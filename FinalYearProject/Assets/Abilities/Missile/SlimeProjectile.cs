@@ -1,13 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
 
-public class Projectile : MonoBehaviour
+public class SlimeProjectile : MonoBehaviour
 {
     public float speed = 20f;
     public float damage = 10f;
     public float lifetime = 5f; // Time after which the projectile is destroyed
+    private float timer;
 
     private void Start()
     {
@@ -17,17 +19,27 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
+        timer += Time.deltaTime;
+        if (timer > lifetime)
+        {
+            Destroy(gameObject);
+        }
         //transform.Translate(Vector3.forward * speed * Time.deltaTime);
      
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider collider)
     {
-        Health target = collision.transform.GetComponent<Health>();
-        if (target != null)
+        Health target = collider.transform.GetComponent<Health>();
+ 
+        if (target != null && target.tag == "Player")
         {
             target.TakeDamage(damage);
+
+            Destroy(gameObject);
         }
-        Destroy(gameObject); // Destroy the projectile on impact
+
+
+         // Destroy the projectile on impact
     }
 }
