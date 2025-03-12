@@ -34,7 +34,7 @@ public class PlayerShoot : MonoBehaviour
 
     public TMP_Text lightningChargesText;
     public ConcentrationBar concentrationBar;
-
+    
     public float ShootCooldown = 0.3f;
 
     private float ShootCooldownTimer;
@@ -73,23 +73,6 @@ public class PlayerShoot : MonoBehaviour
             }
 
         }
-            //if (Input.GetKeyDown(KeyCode.T))
-            //{
-            //concentrationBar.UpdateConcentration(0.3f); // Correct
-            //    Debug.Log("Concentration bar set to low (green).");
-            //}
-            //if (Input.GetKeyDown(KeyCode.Y))
-            //{
-            //concentrationBar.UpdateConcentration(0.75f);
-            //    Debug.Log("Concentration bar set to medium (orange).");
-            //}
-            //if (Input.GetKeyDown(KeyCode.U))
-            //{
-            //concentrationBar.UpdateConcentration(1.2f);
-            //    Debug.Log("Concentration bar set to high (red).");
-            //}
-        
-
     }
 
     void Shoot()

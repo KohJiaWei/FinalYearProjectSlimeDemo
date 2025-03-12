@@ -48,6 +48,10 @@ public class Health : MonoBehaviour
     {
         Debug.Log($"{gameObject.name} has died.");
         Destroy(gameObject);
+        if (CompareTag("Enemy"))
+        {
+            GameTracker.instance.incrementSlimeKilled();
+        }
     }
 
     private void ResetColor()
