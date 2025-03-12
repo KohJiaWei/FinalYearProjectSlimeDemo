@@ -1,4 +1,6 @@
+import os
 import numpy as np
+import pandas as pd
 import tkinter as tk
 import matplotlib
 matplotlib.use('TkAgg')
@@ -9,15 +11,26 @@ from scipy.signal import butter, lfilter, hilbert
 from pylsl import StreamInlet, resolve_stream, StreamInfo, StreamOutlet
 from collections import deque
 from scipy.fft import rfft, rfftfreq
+from datetime import datetime
 
 from tcp_client import UnityTCPClient
+
+
+# ------------------------------------------------------------------------------------
+# 1) Create a dictionary to hold session data
+# ------------------------------------------------------------------------------------
+session_data = {
+    "raw_eeg": [],          # will store raw samples: [timestamp, ch1, ch2, ch3, ch4, ...]
+    "processed_eeg": [],    # will store processed info: [timestamp, alphaZ, betaZ, gammaZ, ratio, etc.]
+    "baseline_samples": [], # optional if you want to store raw amplitude from warm-up
+    "baseline_stats": {},   # final mean/std for each band
+}
 
 _root = tk.Tk()
 _root.withdraw()
 
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
 plt.ion()  # Enable interactive mode
-
 """
 Size Range: 30-35 cm, ear to ear
 Wireless Connection: Bluetooth 4.2
@@ -46,7 +59,6 @@ Muse App Compatibility: iOS 13, Android 8 or higher, Huawei devices not supporte
 # EEG Frequency Bands Definition
 # ====================================================================================
 
-
 FREQUENCY_BANDS = {
     # 'Delta': (0.5, 4),
     # 'Theta': (4, 8),
@@ -54,10 +66,6 @@ FREQUENCY_BANDS = {
     'Beta': (13, 30),
     'Gamma': (30, 100)
 }
-
-# -------------
-# HELPER FUNCS
-# -------------
 
 CHARGE_DELAY = 5  # seconds
 last_charge_time = 0  # Track last time a charge was added
@@ -121,56 +129,85 @@ def compute_fft(data, fs):
     fft_magnitude = np.abs(fft_vals) / N
     return fft_freq, fft_magnitude
 
-# ====================================================================================
-# First, we resolve EEG Stream from Muse 2
-# ====================================================================================
+# ------------------------------------------------------------------------------------
+# 2) Function to save session data at the end
+# ------------------------------------------------------------------------------------
+def save_session_data(session_data):
+    """
+    Saves raw and processed EEG data to CSV files in a folder called 'EEG_Data'.
+    Filenames will be timestamped to avoid overwriting.
+    """
+    folder_name = "EEG_Data"
+    os.makedirs(folder_name, exist_ok=True)
+
+    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # 1. Save raw EEG
+    raw_filename = os.path.join(folder_name, f"session_{timestamp_str}_raw.csv")
+    if len(session_data["raw_eeg"]) > 0:
+        df_raw = pd.DataFrame(session_data["raw_eeg"],
+            columns=["timestamp"] + [f"ch{i}" for i in range(1, len(session_data["raw_eeg"][0]))]
+        )
+        df_raw.to_csv(raw_filename, index=False)
+        print(f"Raw EEG data saved to {raw_filename}")
+    else:
+        print("No raw EEG data collected, skipping raw CSV file.")
+
+    # 2. Save processed EEG
+    processed_filename = os.path.join(folder_name, f"session_{timestamp_str}_processed.csv")
+    if len(session_data["processed_eeg"]) > 0:
+        df_proc = pd.DataFrame(session_data["processed_eeg"],
+            columns=["timestamp", "alpha_z", "beta_z", "gamma_z", "beta_alpha_ratio"]
+        )
+        df_proc.to_csv(processed_filename, index=False)
+        print(f"Processed EEG data saved to {processed_filename}")
+    else:
+        print("No processed EEG data collected, skipping processed CSV file.")
+
+    # 3. Optionally, save baseline stats
+    #    (If you want them in a separate CSV, or just print them out.)
+    print("Baseline stats:")
+    for band, stats in session_data["baseline_stats"].items():
+        print(f"  {band}: mean={stats['mean']:.4f}, std={stats['std']:.4f}")
+
+    print("Session data saved successfully.")
+
+# ------------------------------------------------------------------------------------
+# 3) Connect to Unity (TCP)
+# ------------------------------------------------------------------------------------
 try:
     unity_client = UnityTCPClient(host="127.0.0.1", port=5005)
-    unity_client.connect()  # Attempt to connect at the start
+    unity_client.connect()
     print("Connected to Unity TCP server.")
 except Exception as e:
     print("Error connecting to Unity:", e)
     unity_client = None
 
-    
 print("Looking for an LSL EEG stream...")
-streams = resolve_stream('type', 'EEG') # Resolving LSL EEG streams
+streams = resolve_stream('type', 'EEG')
 if not streams:
     print("No EEG streams found.")
     exit()
 
-# Display available streams
 print("\nAvailable EEG streams:")
-for i, stream in enumerate(streams):
-    print(f"Stream {i}: Name={stream.name()}, Type={stream.type()}, Channels={stream.channel_count()}, Rate={stream.nominal_srate()}")
+for i, st in enumerate(streams):
+    print(f"Stream {i}: Name={st.name()}, Type={st.type()}, Channels={st.channel_count()}, Rate={st.nominal_srate()}")
 
-# Select the first available EEG stream
-stream_index = 0  # Adjust this
+stream_index = 0
 print(f"\nConnecting to EEG stream {stream_index}...\n")
 eeg_inlet = StreamInlet(streams[stream_index])
 
-# ====================================================================================
-# Create LSL Outlets for Processed EEG Data
-# ====================================================================================
-
+# Create LSL Outlets for processed data
 info_amplitude = StreamInfo('EEG_Amplitude', 'Amplitude', len(FREQUENCY_BANDS), 0, 'float32', 'uniqueid12345')
 amplitude_outlet = StreamOutlet(info_amplitude)
 
-info_frequency = StreamInfo('EEG_Frequency', 'Frequency', 257, 0, 'float32', 'uniqueid67890')  # 257 frequency bins for a typical 512-point FFT
+info_frequency = StreamInfo('EEG_Frequency', 'Frequency', 257, 0, 'float32', 'uniqueid67890')
 frequency_outlet = StreamOutlet(info_frequency)
 print("Receiving EEG data and processing...")
 
-# ====================================================================================
-# Sampling Rate and Buffers
-# ====================================================================================
-
 fs = eeg_inlet.info().nominal_srate()
 if fs == 0:
-    fs = 256  #  Muse 2 EEG sampling rate
-
-# ====================================================================================
-# Amplitude envelope
-# ====================================================================================
+    fs = 256  # default for Muse2
 
 """
 We allocate buffers to hold 2 seconds of EEG data in memory
@@ -183,72 +220,61 @@ buffer_duration = 2  # Buffer duration in seconds
 buffer_size = int(fs * buffer_duration)
 eeg_buffer = np.zeros((buffer_size, eeg_inlet.info().channel_count()))
 
-
-print("verify that fs,buffersize ",fs,buffer_size,eeg_inlet.info().channel_count())
-
-# ====================================================================================
-# FFT window
-# ====================================================================================
-
-fft_window_duration = 2  # seconds
+fft_window_duration = 2
 fft_window_size = int(fs * fft_window_duration)
 fft_buffer = np.zeros(fft_window_size)
 
-# ====================================================================================
 # Rolling baseline
-# ====================================================================================
 baseline_window_size = int(10 * fs)
-
-
-# We store a rolling deque for each band to compute baseline mean & std
 rolling_baseline = {
     band: deque(maxlen=baseline_window_size)
     for band in FREQUENCY_BANDS.keys()
 }
 
-
-
-# We'll store normalized amplitude envelopes here
 amplitude_envelopes = {band: [] for band in FREQUENCY_BANDS.keys()}
 beta_alpha_ratio_list = []
 freqs = None
 fft_mag = None
 
-# ====================================================================================
-# Real-time EEG Processing
-# ====================================================================================
-
 warm_up_seconds = 2
 warm_up_samples = int(warm_up_seconds * fs)
 total_samples_collected = 0
-
-
 
 print("Starting real-time EEG processing... (Ctrl+C to stop)")
 
 try:
     while True:
-
         samples, timestamps = eeg_inlet.pull_chunk(timeout=1.0, max_samples=buffer_size)
         if samples:
             eeg_data = np.array(samples)
             chunk_len = len(eeg_data)
             total_samples_collected += chunk_len
 
-            # 6.1 Update buffers
-            # Roll the main EEG buffer
+            # -----------------------------
+            # (A) Store raw EEG data
+            # -----------------------------
+            # For each sample, we store [timestamp, ch1, ch2, ...]
+            for i in range(chunk_len):
+                row = [timestamps[i]]
+                row.extend(eeg_data[i, :])  # all channels
+                session_data["raw_eeg"].append(row)
+
+            # -----------------------------
+            # (B) Roll buffers
+            # -----------------------------
             eeg_buffer = np.roll(eeg_buffer, -chunk_len, axis=0)
             eeg_buffer[-chunk_len:, :] = eeg_data
 
-            # Roll the FFT buffer (channel 0)
             fft_buffer = np.roll(fft_buffer, -chunk_len, axis=0)
-            fft_buffer[-chunk_len:] = eeg_data[:, 0]
+            fft_buffer[-chunk_len:] = eeg_data[:, 0]  # single channel for FFT
 
-            # 6.2 Compute amplitude envelopes for each band
-            
+            # -----------------------------
+            # (C) Warm-up or real-time processing
+            # -----------------------------
             if total_samples_collected > warm_up_samples:
                 current_amplitudes = []
-                # Past warm-up: do real-time band analysis
+
+                # Real-time band analysis
                 for band_name, (low, high) in FREQUENCY_BANDS.items():
                     """
                     we process each band
@@ -260,11 +286,8 @@ try:
                     6. normalize (zscore that amplitude)
                     7. store for plot and push to LSL
                     """
-                    # Filter the entire eeg_buffer
                     filtered = bandpass_filter(eeg_buffer, low, high, fs)
-                    # Hilbert transform -> amplitude
                     envelope = compute_amplitude_envelope(filtered)
-                    # Average across channels, take the most recent sample
                     avg_env = np.mean(envelope, axis=1)
                     latest_amp = avg_env[-1]
 
@@ -284,29 +307,42 @@ try:
                 # Push amplitude data via LSL
                 amplitude_outlet.push_sample(current_amplitudes)
 
-                # 6.3 Beta/Alpha ratio
+                # Beta/Alpha ratio
                 if 'Alpha' in amplitude_envelopes and 'Beta' in amplitude_envelopes:
                     if len(amplitude_envelopes['Alpha']) > 0 and len(amplitude_envelopes['Beta']) > 0:
                         alpha_val = amplitude_envelopes['Alpha'][-1]
                         beta_val  = amplitude_envelopes['Beta'][-1]
                         ratio = beta_val / alpha_val if alpha_val != 0 else 0.0
                         beta_alpha_ratio_list.append(ratio)
+
+                        # -----------------------------
+                        # (D) Send ratio to Unity
+                        # -----------------------------
                         if unity_client is not None:
                             unity_client.send(f"{ratio}")
 
-                        # Send to Unity if ratio > 1
+                        # If ratio > 1 => "AddLightningCharge"
+                        current_time = time.time()
                         if ratio > 1.0 and unity_client is not None:
-                            current_time = time.time()
-                            
                             if current_time - last_charge_time >= CHARGE_DELAY:
-                    
                                 last_charge_time = current_time
-                                # Inform Unity that we gained a charge
                                 try:
                                     unity_client.send("AddLightningCharge")
                                 except Exception as e:
                                     print("Error sending AddLightningCharge to Unity:", e)
 
+                # Store the processed data for this chunk
+                # We can store just the last sample's data as a time snapshot
+                last_ts = timestamps[-1]  # approximate timestamp for the chunk's last sample
+                # alpha_z, beta_z, gamma_z from "current_amplitudes" in that order
+                # or you can do a dictionary approach; for clarity, let's do a fixed order:
+                alpha_z = current_amplitudes[0] if len(current_amplitudes) > 0 else 0
+                beta_z  = current_amplitudes[1] if len(current_amplitudes) > 1 else 0
+                gamma_z = current_amplitudes[2] if len(current_amplitudes) > 2 else 0
+                b_a_ratio = beta_alpha_ratio_list[-1] if len(beta_alpha_ratio_list) > 0 else 0
+                session_data["processed_eeg"].append([
+                    last_ts, alpha_z, beta_z, gamma_z, b_a_ratio
+                ])
 
                 # Compute FFT occasionally
                 if np.count_nonzero(fft_buffer) >= fft_window_size * 0.8:
@@ -316,31 +352,27 @@ try:
                     frequency_outlet.push_sample(fft_mag.tolist())
 
             else:
-                # Warm-up
+                # Warm-up in progress
                 print(f"Warm-up in progress... {total_samples_collected}/{warm_up_samples} samples")
-                # Collect baseline
+                # Collect baseline amplitude
                 for band_name, (low, high) in FREQUENCY_BANDS.items():
                     filtered = bandpass_filter(eeg_buffer, low, high, fs)
                     envelope = compute_amplitude_envelope(filtered)
                     avg_env = np.mean(envelope, axis=1)
                     latest_amp = avg_env[-1]
+                    session_data["baseline_samples"].append((band_name, latest_amp))
                     rolling_baseline[band_name].append(latest_amp)
+
         else:
             print("No samples received. Retrying...")
             time.sleep(0.1)
             continue
 
-        # -----------------------------------------------
-        # B) Check if minimized. If minimized, skip plotting.
-        # -----------------------------------------------
+        # Plot
         if is_window_minimized():
-            # Skip heavy re-drawing, but keep the window "alive"
-            plt.pause(0.3)  
+            plt.pause(0.3)
             continue
 
-        # -----------------------------------------------
-        # C) Plot if not minimized
-        # -----------------------------------------------
         if total_samples_collected > warm_up_samples:
             ax1.clear()
             ax2.clear()
@@ -375,8 +407,27 @@ try:
             plt.pause(0.01)
 
 except KeyboardInterrupt:
-    print("Real-time EEG processing stopped.")
+    print("Real-time EEG processing stopped by user.")
 finally:
+    # --------------------------------------------------------------------------------
+    # 4) Finalize baseline stats => store in session_data["baseline_stats"]
+    # --------------------------------------------------------------------------------
+    for band_name in FREQUENCY_BANDS.keys():
+        arr = np.array(rolling_baseline[band_name], dtype=float)
+        if len(arr) > 1:
+            session_data["baseline_stats"][band_name] = {
+                "mean": float(np.mean(arr)),
+                "std":  float(np.std(arr))
+            }
+        else:
+            session_data["baseline_stats"][band_name] = {"mean": 0.0, "std": 1.0}
+
+    # --------------------------------------------------------------------------------
+    # 5) SAVE session data to CSV
+    # --------------------------------------------------------------------------------
+    save_session_data(session_data)
+
+    # Clean up
     plt.close(fig)
     if unity_client is not None:
         unity_client.close()
