@@ -5,7 +5,6 @@ public class SlimeAI : MonoBehaviour
     // Existing variables
     public float moveSpeed = 2f;
     public float damage = 10f;
-    public float lifetime = 100f;
     public Color hitColor = Color.red;
     public Transform target;
 
@@ -18,6 +17,8 @@ public class SlimeAI : MonoBehaviour
     private Rigidbody rb;
     private Collider[] slimeColliders;
     protected Vector3 combinedDirection;
+    public float SlimeAttackCooldown = 1f;
+    public float SlimeAttackCooldownTimer = 0f;
 
     void Start()
     {
@@ -37,6 +38,7 @@ public class SlimeAI : MonoBehaviour
     void Update()
     {
         SlimeSpellUpdate();
+        SlimeAttackCooldownTimer += Time.deltaTime;
         if (target != null)
         {
             // Calculate player direction
@@ -94,10 +96,15 @@ public class SlimeAI : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-       
+        
+        if (SlimeAttackCooldownTimer < SlimeAttackCooldown)
+        {
+            return;
+        }
+        
         if (collision.gameObject.tag == "Player")
         {
-            collision.gameObject.GetComponent<Health>().TakeDamage(9);
+            collision.gameObject.GetComponent<Health>().TakeDamage(damage);
             collision.gameObject.GetComponent<PlayerMovement>().ApplyKnockback(transform.forward, 100);
 
 

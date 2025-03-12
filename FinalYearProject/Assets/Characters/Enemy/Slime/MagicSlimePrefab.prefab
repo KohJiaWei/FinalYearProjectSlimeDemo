@@ -112,12 +112,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
-  damage: 10
+  damage: 3
   lifetime: 100
   hitColor: {r: 1, g: 0, b: 0, a: 1}
   target: {fileID: 0}
   separationDistance: 1.5
   separationForce: 2
+  SlimeAttackCooldown: 1
+  SlimeAttackCooldownTimer: 0
   prefabBullet: {fileID: 1987058386280102594, guid: f420b35f39d0caa4f8d998e325556802,
     type: 3}
   inBetweenCastTime: 3

@@ -56,7 +56,7 @@ public class ReadingMuse2 : MonoBehaviour
     void Update()
     {
         
-        Debug.Log(inlet);
+        //Debug.Log(inlet);
         if (inlet != null)
         {
             int samples_returned = inlet.pull_chunk(data_buffer, timestamp_buffer);

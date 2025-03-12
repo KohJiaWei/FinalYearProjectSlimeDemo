@@ -64,10 +64,10 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // Update animation speed
-        if (anim != null)
-        {
-            anim.SetFloat("Speed", move.magnitude);
-        }
+        //if (anim != null)
+        //{
+        //    anim.SetFloat("Speed", move.magnitude);
+        //}
 
         // Jumping logic
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded && knockbackTimer <= 0)
