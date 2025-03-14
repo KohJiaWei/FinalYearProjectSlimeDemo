@@ -61,6 +61,12 @@ public class Health : MonoBehaviour
 
         }
     }
+    public void Suicide()
+    {
+        health = 0;
+        Die();
+    }
+
 
     private void ResetColor()
     {

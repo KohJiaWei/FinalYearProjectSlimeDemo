@@ -81,9 +81,12 @@ public class PlayerMovement : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Minus)) // "-" key on keyboard
         {
-            health = 0;  // Set health to 0
-            Debug.Log("Player health reduced to 0!");
-            HandleDeath(); // Optional: Call a function when health reaches 0
+            Health playerHealth = GetComponent<Health>();
+            if (playerHealth != null)
+            {
+                playerHealth.Suicide();
+                Debug.Log("Player instantly killed!");
+            }
         }
 
 
