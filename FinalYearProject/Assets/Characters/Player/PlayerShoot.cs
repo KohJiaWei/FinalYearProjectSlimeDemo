@@ -22,6 +22,7 @@ public class PlayerShoot : MonoBehaviour
     [Header("Shooting Settings")]
     //public float shootForce = 1000f;
 
+
     private Thread serverThread;
     private bool running = true;
 
@@ -223,6 +224,7 @@ public class PlayerShoot : MonoBehaviour
     public void GainCharge()
     {
         lightningCharges++;
+        GameTracker.instance.IncrementLightningBoltsUsed();
         lightningChargesText.text = $"Lightning Charges: {lightningCharges}";
         MainThreadDispatcher.Actions.Enqueue(() =>
         {

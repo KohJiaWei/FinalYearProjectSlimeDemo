@@ -9541,6 +9541,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SlimesKilled: {fileID: 445940957}
   gameTimer: {fileID: 1964043693}
+  lightningChargesText: {fileID: 1729328829}
+  fileNameInput: {fileID: 0}
 --- !u!1 &1659792421
 GameObject:
   m_ObjectHideFlags: 0

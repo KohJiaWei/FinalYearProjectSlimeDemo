@@ -47,10 +47,18 @@ public class Health : MonoBehaviour
     private void Die()
     {
         Debug.Log($"{gameObject.name} has died.");
+        if (CompareTag("Player"))
+        {
+            GameTracker.instance.StopTimer();
+            GameTracker.instance.SaveSession();
+
+
+        }
         Destroy(gameObject);
         if (CompareTag("Enemy"))
         {
-            GameTracker.instance.incrementSlimeKilled();
+            GameTracker.instance.IncrementSlimeKilled();
+
         }
     }
 

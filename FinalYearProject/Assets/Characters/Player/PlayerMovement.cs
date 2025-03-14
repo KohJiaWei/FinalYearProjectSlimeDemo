@@ -78,6 +78,15 @@ public class PlayerMovement : MonoBehaviour
         }
 
         ApplyGravity();
+
+        if (Input.GetKeyDown(KeyCode.Minus)) // "-" key on keyboard
+        {
+            health = 0;  // Set health to 0
+            Debug.Log("Player health reduced to 0!");
+            HandleDeath(); // Optional: Call a function when health reaches 0
+        }
+
+
     }
 
     void ApplyGravity()
