@@ -16,6 +16,7 @@ from datetime import datetime
 from tcp_client import UnityTCPClient
 
 
+BETA_ALPHA_RATIO_LIMIT = 1.0 # modify me according to user
 # ------------------------------------------------------------------------------------
 # 1) Create a dictionary to hold session data
 # ------------------------------------------------------------------------------------
@@ -323,7 +324,7 @@ try:
 
                         # If ratio > 1 => "AddLightningCharge"
                         current_time = time.time()
-                        if ratio > 1.0 and unity_client is not None:
+                        if ratio > BETA_ALPHA_RATIO_LIMIT and unity_client is not None:
                             if current_time - last_charge_time >= CHARGE_DELAY:
                                 last_charge_time = current_time
                                 try:
