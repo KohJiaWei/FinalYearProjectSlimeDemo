@@ -40,6 +40,9 @@ public class PlayerShoot : MonoBehaviour
 
     private float ShootCooldownTimer;
 
+    [Header("Audio Settings")]
+    public AudioSource audioSource;  // AudioSource to play sounds
+    public AudioClip shootSound;     // Sound effect for shooting
 
     void Start()
     {
@@ -80,6 +83,11 @@ public class PlayerShoot : MonoBehaviour
     {
         if (projectilePrefab == null) return;
         anim.Play("Attack01", 0, 0);
+        if (audioSource != null && shootSound != null)
+        {
+            audioSource.PlayOneShot(shootSound);
+        }
+
         GameObject projectile = Instantiate(projectilePrefab, fpsCam.transform.position, fpsCam.transform.rotation);
         //if (projectile.TryGetComponent(out Rigidbody rb))
         //{

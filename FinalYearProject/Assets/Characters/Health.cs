@@ -11,10 +11,14 @@ public class Health : MonoBehaviour
     // Method to apply damage to the target
     private Renderer[] arrayOfRenderers;
 
+    [Header("Audio Settings")]
+    public AudioSource audioSource;
+    public AudioClip hitSound;       // Sound when entity is hit
+    public AudioClip deathSound;     // Sound when entity dies
+
     void Start()
     {
         arrayOfRenderers = GetComponentsInChildren<Renderer>();
-        // Save the original color
         originalColors = new Color[arrayOfRenderers.Length];
         if (arrayOfRenderers != null)
         {
@@ -30,6 +34,10 @@ public class Health : MonoBehaviour
     public void TakeDamage(float damage)
     {
         if (this.enabled == false) return;
+        if (audioSource != null && hitSound != null)
+        {
+            audioSource.PlayOneShot(hitSound);
+        }
         for (int i = 0; i < arrayOfRenderers.Length; i++)
         {
             arrayOfRenderers[i].material.color = hitColor;
@@ -46,6 +54,10 @@ public class Health : MonoBehaviour
     // Method to handle the target's death
     private void Die()
     {
+        if (audioSource != null && deathSound != null)
+        {
+            audioSource.PlayOneShot(deathSound);
+        }
         Debug.Log($"{gameObject.name} has died.");
         if (CompareTag("Player"))
         {
@@ -76,4 +88,7 @@ public class Health : MonoBehaviour
         }
     }
 }
+
+
+
 
