@@ -15,11 +15,14 @@ public class PlayerMovement : MonoBehaviour
     public float knockbackForce = 10f;
     public float knockbackDuration = 0.3f;
 
+    
+
     private Vector3 velocity;
     private bool isGrounded;
     private bool isJumping;
     private Vector3 knockbackDirection;
     private float knockbackTimer;
+
 
     void Update()
     {
