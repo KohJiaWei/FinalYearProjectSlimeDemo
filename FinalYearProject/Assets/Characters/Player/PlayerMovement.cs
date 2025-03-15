@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    // Existing variables
+    // ------------------------------
+    // EXISTING VARIABLES
+    // ------------------------------
     public CharacterController controller;
     public Transform playerBody;
     public float walkSpeed = 5.0f;
@@ -11,11 +13,8 @@ public class PlayerMovement : MonoBehaviour
     public float jumpHeight = 3f;
     public Animator anim;
 
-    // Knockback variables
     public float knockbackForce = 10f;
     public float knockbackDuration = 0.3f;
-
-    
 
     private Vector3 velocity;
     private bool isGrounded;
@@ -23,6 +22,30 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 knockbackDirection;
     private float knockbackTimer;
 
+    // ------------------------------
+    // NEW AUDIO VARIABLES
+    // ------------------------------
+    [Header("Audio")]
+    public AudioSource sfxAudioSource;        // For jump, running, etc.
+    public AudioClip jumpClip;
+    public AudioClip runClip;
+
+    public AudioSource backgroundAudioSource; // For background music
+    public AudioClip backgroundMusic;
+
+    private bool isPlayingRunSound;
+    // ------------------------------
+
+    void Start()
+    {
+        // OPTIONAL: Play background music if not playing already
+        if (backgroundAudioSource != null && backgroundMusic != null)
+        {
+            backgroundAudioSource.clip = backgroundMusic;
+            backgroundAudioSource.loop = true;
+            backgroundAudioSource.Play();
+        }
+    }
 
     void Update()
     {
@@ -36,7 +59,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // Existing ground check
-        if (isGrounded == false && controller.isGrounded == true)
+        if (!isGrounded && controller.isGrounded)
         {
             anim.Play("JumpEnd");
             isJumping = false;
@@ -52,7 +75,8 @@ public class PlayerMovement : MonoBehaviour
         move.Normalize();
 
         // Determine speed
-        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
+        bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        float currentSpeed = isRunning ? runSpeed : walkSpeed;
 
         // Apply movement
         controller.Move(move * currentSpeed * Time.deltaTime);
@@ -60,29 +84,34 @@ public class PlayerMovement : MonoBehaviour
         // Animation handling
         if (!isJumping)
         {
+            // Basic directional animations
             if (z > 0) anim.Play("BattleWalkForward");
             else if (z < 0) anim.Play("BattleWalkBack");
             else if (x > 0) anim.Play("BattleWalkRight");
             else if (x < 0) anim.Play("BattleWalkLeft");
         }
 
-        // Update animation speed
-        //if (anim != null)
-        //{
-        //    anim.SetFloat("Speed", move.magnitude);
-        //}
+        // --- NEW: Footstep / Running sound ---
+        HandleRunAudio(move, isRunning);
 
-        // Jumping logic
+        // Jump logic
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded && knockbackTimer <= 0)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             anim.Play("JumpStart");
             isJumping = true;
+
+            // NEW: Play jump sound once
+            if (sfxAudioSource != null && jumpClip != null)
+            {
+                sfxAudioSource.PlayOneShot(jumpClip);
+            }
         }
 
         ApplyGravity();
 
-        if (Input.GetKeyDown(KeyCode.Minus)) 
+        // Example: Kill player with '-'
+        if (Input.GetKeyDown(KeyCode.Minus))
         {
             Health playerHealth = GetComponent<Health>();
             if (playerHealth != null)
@@ -91,8 +120,37 @@ public class PlayerMovement : MonoBehaviour
                 Debug.Log("Player instantly killed!");
             }
         }
+    }
 
+    // NEW: Handle footstep / running sound
+    void HandleRunAudio(Vector3 move, bool isRunning)
+    {
+        // If we're moving (magnitude > 0) AND grounded
+        bool isMoving = move.magnitude > 0.01f && isGrounded && !isJumping;
 
+        // If using "runClip" for both walk/run, you'll play the same footsteps
+        // Or you could add a separate "walkClip" if you want different sounds.
+        if (isMoving)
+        {
+            // If not currently playing run sound, start it
+            if (!isPlayingRunSound && sfxAudioSource != null && runClip != null)
+            {
+                sfxAudioSource.clip = runClip;
+                sfxAudioSource.loop = true;
+                sfxAudioSource.Play();
+                isPlayingRunSound = true;
+            }
+        }
+        else
+        {
+            // Stop the looped running if no longer moving
+            if (isPlayingRunSound && sfxAudioSource != null)
+            {
+                sfxAudioSource.Stop();
+                sfxAudioSource.clip = null;
+                isPlayingRunSound = false;
+            }
+        }
     }
 
     void ApplyGravity()
@@ -103,7 +161,6 @@ public class PlayerMovement : MonoBehaviour
 
     void ApplyKnockbackMovement()
     {
-        // Apply knockback direction with damping
         float damping = 1 - (knockbackTimer / knockbackDuration);
         Vector3 knockback = knockbackDirection * knockbackForce * damping * Time.deltaTime;
         controller.Move(knockback);
@@ -111,7 +168,6 @@ public class PlayerMovement : MonoBehaviour
 
     public void ApplyKnockback(Vector3 direction, float force)
     {
-        // Normalize and store knockback direction
         knockbackDirection = direction.normalized;
         knockbackForce = force;
         knockbackTimer = knockbackDuration;
