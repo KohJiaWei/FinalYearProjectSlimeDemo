@@ -19,13 +19,12 @@ public class GameTracker : MonoBehaviour
     private int successfulHits = 0;      // Number of times the shot landed
     private int lightningBoltsUsed = 0;  // EEG-triggered ability
     private int powerUpsActivated = 0;   // Concentration peaks
-
+    private bool GameisPaused = false;
     // Change this to wherever you want to save the file
     private string saveDirectory = @"C:\Unity_Projects\GameSessions";
 
     private void Awake()
     {
-        // Basic Singleton pattern (optional)
         if (instance == null)
         {
             instance = this;
@@ -48,6 +47,11 @@ public class GameTracker : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            TogglePause();
+        }
+
         if (isGameRunning)
         {
             elapsedTime += Time.deltaTime;
@@ -98,6 +102,21 @@ public class GameTracker : MonoBehaviour
     public void StopTimer()
     {
         isGameRunning = false;
+    }
+
+    public void TogglePause()
+    {
+        GameisPaused = !GameisPaused;
+        if (GameisPaused)
+        {
+            Time.timeScale = 0;
+
+        }
+        else
+        {
+            Time.timeScale = 1;
+        }
+
     }
 
     private void UpdateGameTimerDisplay()

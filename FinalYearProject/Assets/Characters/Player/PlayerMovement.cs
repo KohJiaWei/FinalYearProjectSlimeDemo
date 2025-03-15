@@ -79,7 +79,7 @@ public class PlayerMovement : MonoBehaviour
 
         ApplyGravity();
 
-        if (Input.GetKeyDown(KeyCode.Minus)) // "-" key on keyboard
+        if (Input.GetKeyDown(KeyCode.Minus)) 
         {
             Health playerHealth = GetComponent<Health>();
             if (playerHealth != null)
