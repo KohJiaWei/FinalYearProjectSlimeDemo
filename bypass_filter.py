@@ -247,6 +247,7 @@ total_samples_collected = 0
 print("Starting real-time EEG processing... (Ctrl+C to stop)")
 
 try:
+    first_timestamp = None
     while True:
         samples, timestamps = eeg_inlet.pull_chunk(timeout=1.0, max_samples=buffer_size)
         if samples:
@@ -259,7 +260,9 @@ try:
             # -----------------------------
             # For each sample, we store [timestamp, ch1, ch2, ...]
             for i in range(chunk_len):
-                row = [timestamps[i] - script_start_time]  # Now relative to script start
+                if first_timestamp is None:
+                    first_timestamp = timestamps[i]
+                row = [timestamps[i] - first_timestamp]  # Now relative to script start
                 row.extend(eeg_data[i, :])  # all channels
                 session_data["raw_eeg"].append(row)
 
@@ -337,7 +340,7 @@ try:
 
                 # Store the processed data for this chunk
                 # We can store just the last sample's data as a time snapshot
-                last_ts = timestamps[-1] - script_start_time  # relative timestamp for the chunk's last sample
+                last_ts = timestamps[-1] - first_timestamp  # relative timestamp for the chunk's last sample
                 # alpha_z, beta_z, gamma_z from "current_amplitudes" in that order
                 # or you can do a dictionary approach; for clarity, let's do a fixed order:
                 alpha_z = current_amplitudes[0] if len(current_amplitudes) > 0 else 0
