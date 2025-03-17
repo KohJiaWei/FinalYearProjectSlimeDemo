@@ -9621,7 +9621,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d439cef9d57605b4e97ab38e66f5ae87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 100
+  health: 200
   hitColor: {r: 1, g: 0, b: 0, a: 1}
   audioSource: {fileID: 1654971212}
   hitSound: {fileID: 8300000, guid: 30db963ad3abb834fbc650591cbb8cf7, type: 3}

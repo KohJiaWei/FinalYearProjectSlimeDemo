@@ -45,6 +45,11 @@ public class CardGameMain : MonoBehaviour
     // Save location
     private string saveDirectory;
 
+    [Header("Audio Settings")]
+    public AudioSource audioSource;   // Audio source to play sounds
+    public AudioClip flipCardSound;   // Sound effect for flipping a card
+
+
     void Start()
     {
         main = this;
@@ -269,11 +274,17 @@ public class CardGameMain : MonoBehaviour
     {
         if (GameisPaused)
         {
-            
             return;
         }
+
         // If the game is not running or we're in the middle of checking, return
         if (!isGameRunning || isCurrentlyChecking) return;
+
+        // Play the card flip sound
+        if (audioSource != null && flipCardSound != null)
+        {
+            audioSource.PlayOneShot(flipCardSound);
+        }
 
         // If first card not selected yet
         if (card1 == null)
@@ -283,7 +294,6 @@ public class CardGameMain : MonoBehaviour
 
             // Mark the time we started this attempt (when first card is revealed)
             attemptStartTime = Time.time;
-           
             return;
         }
 
@@ -333,4 +343,5 @@ public class CardGameMain : MonoBehaviour
             isCurrentlyChecking = false;
         });
     }
+
 }

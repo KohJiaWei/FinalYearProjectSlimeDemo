@@ -16,7 +16,9 @@ from datetime import datetime
 from tcp_client import UnityTCPClient
 
 
-BETA_ALPHA_RATIO_LIMIT = 1.0 # modify me according to user
+BETA_ALPHA_RATIO_LIMIT = 1.0 # modify according to user
+
+
 # ------------------------------------------------------------------------------------
 # 1) Create a dictionary to hold session data
 # ------------------------------------------------------------------------------------
@@ -205,6 +207,7 @@ amplitude_outlet = StreamOutlet(info_amplitude)
 info_frequency = StreamInfo('EEG_Frequency', 'Frequency', 257, 0, 'float32', 'uniqueid67890')
 frequency_outlet = StreamOutlet(info_frequency)
 print("Receiving EEG data and processing...")
+script_start_time = time.time()  # Store the start time when script begins
 
 fs = eeg_inlet.info().nominal_srate()
 if fs == 0:
@@ -256,7 +259,7 @@ try:
             # -----------------------------
             # For each sample, we store [timestamp, ch1, ch2, ...]
             for i in range(chunk_len):
-                row = [timestamps[i]]
+                row = [timestamps[i] - script_start_time]  # Now relative to script start
                 row.extend(eeg_data[i, :])  # all channels
                 session_data["raw_eeg"].append(row)
 
@@ -334,7 +337,7 @@ try:
 
                 # Store the processed data for this chunk
                 # We can store just the last sample's data as a time snapshot
-                last_ts = timestamps[-1]  # approximate timestamp for the chunk's last sample
+                last_ts = timestamps[-1] - script_start_time  # relative timestamp for the chunk's last sample
                 # alpha_z, beta_z, gamma_z from "current_amplitudes" in that order
                 # or you can do a dictionary approach; for clarity, let's do a fixed order:
                 alpha_z = current_amplitudes[0] if len(current_amplitudes) > 0 else 0

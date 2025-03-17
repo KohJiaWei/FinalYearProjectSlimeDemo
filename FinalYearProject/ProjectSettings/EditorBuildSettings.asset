@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MemoryCard.unity
     guid: 9153b00116ee1aa4f8a2b8db841ec1ba
+  - enabled: 0
+    path: Assets/Scenes/MainForest.unity
+    guid: 2bb89f78b1d693e4eaa6dabcaa3f80c2
   m_configObjects: {}

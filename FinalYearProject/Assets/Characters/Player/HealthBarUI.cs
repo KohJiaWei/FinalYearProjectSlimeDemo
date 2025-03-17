@@ -10,7 +10,7 @@ public class HealthBarUI : MonoBehaviour
     public Color fullHealthColor = Color.green;
     public Color lowHealthColor = Color.red;
 
-    private float maxHealth = 100f; // Set max HP
+    private float maxHealth = 200f; // Set max HP
     public Health currhealth;
     // Start is called before the first frame update
     void Start()
